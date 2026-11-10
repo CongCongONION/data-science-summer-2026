@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IDX Exchange -- Week 7 Report</title>
+<style>
+  :root {
+    --teal:    #0d9488;
+    --teal-dk: #0f766e;
+    --teal-lt: #ccfbf1;
+    --bg:      #f8fafc;
+    --card:    #ffffff;
+    --border:  #e2e8f0;
+    --text:    #1e293b;
+    --muted:   #64748b;
+    --red:     #dc2626;
+    --green:   #16a34a;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg);
+          color:var(--text); font-size:15px; line-height:1.6 }
+  .header { background:linear-gradient(135deg,#b45309 0%,#d97706 50%,#0d9488 100%);
+             color:#fff; padding:48px 40px 40px }
+  .header h1 { font-size:2rem; font-weight:700; margin-bottom:6px }
+  .header p  { opacity:.85 }
+  .meta      { display:flex; gap:24px; margin-top:18px; flex-wrap:wrap }
+  .meta span { background:rgba(255,255,255,.18); padding:4px 14px; border-radius:20px; font-size:.82em }
+  .container { max-width:1100px; margin:0 auto; padding:40px 24px }
+  .section   { background:var(--card); border:1px solid var(--border); border-radius:12px;
+                padding:30px 32px; margin-bottom:28px; box-shadow:0 1px 4px rgba(0,0,0,.05) }
+  .section h2 { font-size:1.15rem; font-weight:700; color:var(--teal-dk);
+                 border-bottom:2px solid var(--teal-lt); padding-bottom:10px; margin-bottom:22px }
+  .kpi-grid  { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:18px }
+  .kpi       { background:var(--bg); border:1px solid var(--border); border-radius:10px;
+                padding:20px 18px; text-align:center }
+  .kpi-val   { font-size:1.9rem; font-weight:700 }
+  .kpi-label { font-size:.78em; color:var(--muted); margin-top:4px;
+                text-transform:uppercase; letter-spacing:.05em }
+  .kpi-sub   { font-size:.76em; color:var(--muted); margin-top:2px }
+  .ba-grid   { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px }
+  .ba-card   { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:20px 22px }
+  .ba-title  { font-weight:600; color:var(--teal-dk); margin-bottom:14px }
+  .ba-row    { display:flex; align-items:center; gap:10px }
+  .ba-box    { flex:1; background:var(--card); border:1px solid var(--border);
+                border-radius:8px; padding:10px; text-align:center }
+  .ba-lab    { font-size:.73em; color:var(--muted); text-transform:uppercase; letter-spacing:.03em }
+  .ba-num    { font-size:1.25rem; font-weight:700 }
+  .ba-arrow  { font-size:1.3rem; color:var(--muted) }
+  .ba-delta  { font-size:1rem; font-weight:700; min-width:55px; text-align:center }
+  table { width:100%; border-collapse:collapse; font-size:.875em }
+  th    { background:var(--teal); color:#fff; padding:10px 14px; text-align:left; font-weight:600 }
+  td    { padding:9px 14px; border-bottom:1px solid var(--border) }
+  tr:nth-child(even) td { background:#f8fafc }
+  tr:hover td { background:#f0fdfa }
+  code  { background:#f1f5f9; padding:2px 7px; border-radius:4px; font-size:.83em; color:#0f766e }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px }
+  .scroll { overflow-x:auto }
+  .tag-green { background:#dcfce7; color:#166534; padding:3px 10px;
+                border-radius:12px; font-size:.78em; font-weight:600 }
+  .tag-amber { background:#fef3c7; color:#92400e; padding:3px 10px;
+                border-radius:12px; font-size:.78em; font-weight:600 }
+  @media(max-width:700px) { .two-col { grid-template-columns:1fr } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>IDX Exchange -- Outlier Detection Report</h1>
+  <p>Week 7 Deliverable: Outlier Detection and Data Quality</p>
+  <div class="meta">
+    <span>Author: Ruoyu Wang</span>
+    <span>Date: May 21, 2026</span>
+    <span>Method: IQR (1.5x)</span>
+    <span>CRMLS Sold Jan 2024 - Apr 2026</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 1. Executive Summary -->
+  <div class="section">
+    <h2>1. Executive Summary</h2>
+    <div class="kpi-grid">
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">414,184</div>
+  <div class="kpi-label">Records Before</div>
+  <div class="kpi-sub">Input dataset</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#16a34a">317,218</div>
+  <div class="kpi-label">Records After</div>
+  <div class="kpi-sub">Analysis-ready</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#dc2626">96,966</div>
+  <div class="kpi-label">Records Removed</div>
+  <div class="kpi-sub">23.41% of total</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">76.6%</div>
+  <div class="kpi-label">Retention Rate</div>
+  <div class="kpi-sub">Kept for analysis</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">434</div>
+  <div class="kpi-label">Biz-Rule Violations</div>
+  <div class="kpi-sub">Always-invalid</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#f59e0b">96,532</div>
+  <div class="kpi-label">IQR Outliers</div>
+  <div class="kpi-sub">Statistical outliers</div>
+</div>
+    </div>
+  </div>
+
+  <!-- 2. Before / After Row Counts -->
+  <div class="section">
+    <h2>2. Before / After Dataset Size</h2>
+    <div class="ba-grid">
+      <div class="ba-card">
+        <div class="ba-title">Row Count</div>
+        <div class="ba-row">
+          <div class="ba-box"><div class="ba-lab">Before</div><div class="ba-num">414,184</div></div>
+          <div class="ba-arrow">&#8594;</div>
+          <div class="ba-box"><div class="ba-lab">After</div><div class="ba-num">317,218</div></div>
+          <div class="ba-delta" style="color:#dc2626">-96,966</div>
+        </div>
+      </div>
+      <div class="ba-card">
+        <div class="ba-title">Removal Breakdown</div>
+        
+<div style="margin-bottom:14px">
+  <div style="display:flex;justify-content:space-between;font-size:.85em;margin-bottom:4px">
+    <span>Business-rule invalid (always excluded)</span>
+    <span style="font-weight:600;color:#0f766e">434
+      <span style="color:#6b7280;font-weight:400">(0.105%)</span>
+    </span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden"><div style="width:0.10%;background:#dc2626;height:100%;border-radius:4px"></div></div>
+</div>
+        
+<div style="margin-bottom:14px">
+  <div style="display:flex;justify-content:space-between;font-size:.85em;margin-bottom:4px">
+    <span>IQR statistical outliers (any field)</span>
+    <span style="font-weight:600;color:#0f766e">96,532
+      <span style="color:#6b7280;font-weight:400">(23.307%)</span>
+    </span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden"><div style="width:23.31%;background:#f59e0b;height:100%;border-radius:4px"></div></div>
+</div>
+        
+<div style="margin-bottom:14px">
+  <div style="display:flex;justify-content:space-between;font-size:.85em;margin-bottom:4px">
+    <span>Total excluded (union)</span>
+    <span style="font-weight:600;color:#0f766e">96,966
+      <span style="color:#6b7280;font-weight:400">(23.411%)</span>
+    </span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden"><div style="width:23.41%;background:#7c3aed;height:100%;border-radius:4px"></div></div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Business Rules -->
+  <div class="section">
+    <h2>3. Business Rules -- Always-Invalid Records</h2>
+    <p style="margin-bottom:16px;font-size:.9em;color:var(--muted)">
+      These records violate fundamental data constraints and are excluded regardless of IQR results.
+    </p>
+    <table>
+      <thead><tr><th>Flag Column</th><th>Rule</th><th>Reason</th><th>Count</th></tr></thead>
+      <tbody><tr>
+      <td><code>biz_close_price_invalid</code></td>
+      <td>ClosePrice <= 0 or null</td>
+      <td>Always invalid — cannot compute any price metrics</td>
+      <td style="text-align:right">3</td>
+    </tr><tr>
+      <td><code>biz_living_area_invalid</code></td>
+      <td>LivingArea <= 0 or null</td>
+      <td>Always invalid — PPSF undefined</td>
+      <td style="text-align:right">384</td>
+    </tr><tr>
+      <td><code>biz_dom_invalid</code></td>
+      <td>DaysOnMarket < 0</td>
+      <td>Logically impossible — data entry error</td>
+      <td style="text-align:right">47</td>
+    </tr></tbody>
+    </table>
+  </div>
+
+  <!-- 4. IQR Analysis -->
+  <div class="section">
+    <h2>4. IQR Outlier Detection -- All Fields</h2>
+    <p style="margin-bottom:16px;font-size:.9em;color:var(--muted)">
+      IQR method: Lower = Q1 - 1.5 x IQR &nbsp;|&nbsp; Upper = Q3 + 1.5 x IQR.
+      Flags are additive -- a record may be flagged in multiple fields.
+    </p>
+    <div class="scroll">
+    <table>
+      <thead><tr>
+        <th>Field</th><th>Q1</th><th>Q3</th><th>IQR</th>
+        <th>Lower Bound</th><th>Upper Bound</th>
+        <th>Outliers</th><th>% Flagged</th>
+      </tr></thead>
+      <tbody><tr>
+      <td><code>ClosePrice</code></td>
+      <td style="text-align:right">575,000.00</td>
+      <td style="text-align:right">1,300,000.00</td>
+      <td style="text-align:right">725,000.00</td>
+      <td style="text-align:right">-512,500.00</td>
+      <td style="text-align:right">2,387,500.00</td>
+      <td style="text-align:right">30,608</td>
+      <td style="text-align:right">7.40%<br><div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden"><div style="width:7.40%;background:#dc2626;height:100%;border-radius:4px"></div></div></td>
+    </tr><tr>
+      <td><code>LivingArea</code></td>
+      <td style="text-align:right">1,248.00</td>
+      <td style="text-align:right">2,219.00</td>
+      <td style="text-align:right">971.00</td>
+      <td style="text-align:right">-208.50</td>
+      <td style="text-align:right">3,675.50</td>
+      <td style="text-align:right">18,218</td>
+      <td style="text-align:right">4.40%<br><div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden"><div style="width:4.40%;background:#dc2626;height:100%;border-radius:4px"></div></div></td>
+    </tr><tr>
+      <td><code>DaysOnMarket</code></td>
+      <td style="text-align:right">8.00</td>
+      <td style="text-align:right">48.00</td>
+      <td style="text-align:right">40.00</td>
+      <td style="text-align:right">-52.00</td>
+      <td style="text-align:right">108.00</td>
+      <td style="text-align:right">31,751</td>
+      <td style="text-align:right">7.67%<br><div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden"><div style="width:7.67%;background:#dc2626;height:100%;border-radius:4px"></div></div></td>
+    </tr><tr>
+      <td><code>ppsf</code></td>
+      <td style="text-align:right">368.42</td>
+      <td style="text-align:right">732.36</td>
+      <td style="text-align:right">363.94</td>
+      <td style="text-align:right">-177.49</td>
+      <td style="text-align:right">1,278.28</td>
+      <td style="text-align:right">17,459</td>
+      <td style="text-align:right">4.22%<br><div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden"><div style="width:4.22%;background:#dc2626;height:100%;border-radius:4px"></div></div></td>
+    </tr><tr>
+      <td><code>listing_to_contract_days</code></td>
+      <td style="text-align:right">10.00</td>
+      <td style="text-align:right">58.00</td>
+      <td style="text-align:right">48.00</td>
+      <td style="text-align:right">-62.00</td>
+      <td style="text-align:right">130.00</td>
+      <td style="text-align:right">29,358</td>
+      <td style="text-align:right">7.10%<br><div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden"><div style="width:7.10%;background:#dc2626;height:100%;border-radius:4px"></div></div></td>
+    </tr><tr>
+      <td><code>contract_to_close_days</code></td>
+      <td style="text-align:right">21.00</td>
+      <td style="text-align:right">36.00</td>
+      <td style="text-align:right">15.00</td>
+      <td style="text-align:right">-1.50</td>
+      <td style="text-align:right">58.50</td>
+      <td style="text-align:right">27,122</td>
+      <td style="text-align:right">6.56%<br><div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden"><div style="width:6.56%;background:#dc2626;height:100%;border-radius:4px"></div></div></td>
+    </tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- 5. Before / After Medians -->
+  <div class="section">
+    <h2>5. Median Value Comparison -- Before vs. After Filtering</h2>
+    <p style="margin-bottom:16px;font-size:.9em;color:var(--muted)">
+      Positive delta = median increased after removing outliers (low-end outliers dominated).
+      Negative delta = median decreased (high-end outliers dominated).
+    </p>
+    <table>
+      <thead><tr><th>Field</th><th>Median Before</th><th>Median After</th><th>Delta</th></tr></thead>
+      <tbody><tr>
+      <td>Close Price ($)</td>
+      <td style="text-align:right">823,000.00</td>
+      <td style="text-align:right">789,000.00</td>
+      <td style="text-align:right;color:#dc2626;font-weight:600">-34,000.00</td>
+    </tr><tr>
+      <td>Living Area (sqft)</td>
+      <td style="text-align:right">1,642.00</td>
+      <td style="text-align:right">1,576.00</td>
+      <td style="text-align:right;color:#dc2626;font-weight:600">-66.00</td>
+    </tr><tr>
+      <td>Days on Market</td>
+      <td style="text-align:right">18.00</td>
+      <td style="text-align:right">15.00</td>
+      <td style="text-align:right;color:#dc2626;font-weight:600">-3.00</td>
+    </tr><tr>
+      <td>Price Per Sq Ft ($/sqft)</td>
+      <td style="text-align:right">537.45</td>
+      <td style="text-align:right">529.37</td>
+      <td style="text-align:right;color:#dc2626;font-weight:600">-8.07</td>
+    </tr></tbody>
+    </table>
+  </div>
+
+  <!-- 6. ClosePrice Percentile Distribution -->
+  <div class="section">
+    <h2>6. ClosePrice Percentile Distribution</h2>
+    <div class="two-col">
+      <div>
+        <table>
+          <thead><tr><th>Percentile</th><th>ClosePrice</th></tr></thead>
+          <tbody><tr>
+      <td>1st</td>
+      <td style="text-align:right">$202,481</td>
+    </tr><tr>
+      <td>5th</td>
+      <td style="text-align:right">$340,000</td>
+    </tr><tr>
+      <td>10th</td>
+      <td style="text-align:right">$415,000</td>
+    </tr><tr>
+      <td>25th (Q1)</td>
+      <td style="text-align:right">$575,000</td>
+    </tr><tr>
+      <td>50th (Median)</td>
+      <td style="text-align:right">$823,000</td>
+    </tr><tr>
+      <td>75th (Q3)</td>
+      <td style="text-align:right">$1,300,000</td>
+    </tr><tr>
+      <td>90th</td>
+      <td style="text-align:right">$2,065,000</td>
+    </tr><tr>
+      <td>95th</td>
+      <td style="text-align:right">$2,850,000 <span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:.75em">above IQR upper</span></td>
+    </tr><tr>
+      <td>99th</td>
+      <td style="text-align:right">$5,568,950 <span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:.75em">above IQR upper</span></td>
+    </tr></tbody>
+        </table>
+      </div>
+      <div>
+        <p style="font-size:.9em;color:var(--muted);margin-bottom:14px">
+          <strong>IQR Bounds for ClosePrice:</strong>
+        </p>
+        <table>
+          <thead><tr><th>Bound</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Lower (Q1 - 1.5*IQR)</td>
+                <td style="text-align:right">$-512,500</td></tr>
+            <tr><td>Upper (Q3 + 1.5*IQR)</td>
+                <td style="text-align:right">$2,387,500</td></tr>
+            <tr><td>Outliers flagged</td>
+                <td style="text-align:right">30,608</td></tr>
+            <tr><td>% of valid records</td>
+                <td style="text-align:right">7.40%</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:16px;font-size:.85em;color:var(--muted)">
+          Records flagged as outliers are <strong>retained</strong> in
+          <code>sold_outlier_flagged.csv</code> with <code>any_outlier_flag=1</code>.
+          Only <code>sold_analysis_ready.csv</code> excludes them.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Output Files -->
+  <div class="section">
+    <h2>7. Output Files</h2>
+    <table>
+      <thead><tr><th>File</th><th>Description</th><th>Rows</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>sold_outlier_flagged.csv</code></td>
+          <td>Full dataset with all outlier flag columns added. No rows deleted.</td>
+          <td style="text-align:right">414,184</td>
+          <td>Audit trail, full analysis</td>
+        </tr>
+        <tr>
+          <td><code>sold_analysis_ready.csv</code></td>
+          <td>Filtered dataset: business-valid records with no IQR outlier flags.</td>
+          <td style="text-align:right">317,218</td>
+          <td>Tableau dashboards, market analytics</td>
+        </tr>
+        <tr>
+          <td><code>outlier_summary.json</code></td>
+          <td>IQR bounds, before/after stats, percentile breakdowns.</td>
+          <td>--</td>
+          <td>Reporting, validation</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. Deliverable Checklist -->
+  <div class="section">
+    <h2>8. Week 7 Deliverable Checklist</h2>
+    <table>
+      <thead><tr><th>Handbook Requirement</th><th>Status</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td>Apply IQR to ClosePrice</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>30,608 outliers flagged</td></tr>
+        <tr><td>Apply IQR to LivingArea</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>18,218 outliers flagged</td></tr>
+        <tr><td>Apply IQR to DaysOnMarket</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>31,751 outliers flagged</td></tr>
+        <tr><td>Apply IQR to PPSF</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>17,459 outliers flagged</td></tr>
+        <tr><td>Apply IQR to listing_to_contract_days</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>29,358 outliers flagged</td></tr>
+        <tr><td>Apply IQR to contract_to_close_days</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>27,122 outliers flagged</td></tr>
+        <tr><td>Add outlier flag columns (no deletion)</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>*_outlier_flag per field + any_outlier_flag composite</td></tr>
+        <tr><td>Save full flagged dataset</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>sold_outlier_flagged.csv (414,184 rows)</td></tr>
+        <tr><td>Save clean filtered dataset</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>sold_analysis_ready.csv (317,218 rows)</td></tr>
+        <tr><td>Before/after median comparison</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>Section 5 above -- all 4 key fields</td></tr>
+        <tr><td>Tiered approach (biz rules + IQR)</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>Business violations excluded first, then IQR applied to remainder</td></tr>
+        <tr><td>Percentile analysis</td>
+            <td><span class="tag-green">DONE</span></td>
+            <td>P1 through P99 for ClosePrice -- Section 6</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center;color:var(--muted);font-size:.8em;padding:20px 0">
+    IDX Exchange Data Analyst Internship -- Week 7 Deliverable -- Generated May 21, 2026
+  </div>
+</div>
+</body>
+</html>

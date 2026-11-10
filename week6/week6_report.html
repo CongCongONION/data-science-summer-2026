@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IDX Exchange — Week 6 Report</title>
+<style>
+  :root {
+    --teal:    #0d9488;
+    --teal-dk: #0f766e;
+    --teal-lt: #ccfbf1;
+    --bg:      #f8fafc;
+    --card:    #ffffff;
+    --border:  #e2e8f0;
+    --text:    #1e293b;
+    --muted:   #64748b;
+    --purple:  #7c3aed;
+  }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); font-size:15px; line-height:1.6 }
+  .header { background:linear-gradient(135deg,#4338ca 0%,#7c3aed 50%,#0d9488 100%);
+             color:#fff; padding:48px 40px 40px }
+  .header h1 { font-size:2rem; font-weight:700; margin-bottom:6px }
+  .header p  { opacity:.85; font-size:1rem }
+  .meta      { display:flex; gap:24px; margin-top:18px; flex-wrap:wrap }
+  .meta span { background:rgba(255,255,255,.18); padding:4px 14px; border-radius:20px; font-size:.82em }
+  .container { max-width:1180px; margin:0 auto; padding:40px 24px }
+  .section   { background:var(--card); border:1px solid var(--border); border-radius:12px;
+                padding:30px 32px; margin-bottom:28px; box-shadow:0 1px 4px rgba(0,0,0,.05) }
+  .section h2 { font-size:1.15rem; font-weight:700; color:var(--teal-dk); border-bottom:2px solid var(--teal-lt);
+                 padding-bottom:10px; margin-bottom:22px }
+  .kpi-grid  { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:18px }
+  .kpi       { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:20px 18px; text-align:center }
+  .kpi-val   { font-size:1.9rem; font-weight:700 }
+  .kpi-label { font-size:.78em; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.05em }
+  .kpi-sub   { font-size:.76em; color:var(--muted); margin-top:2px }
+  table  { width:100%; border-collapse:collapse; font-size:.85em; overflow-x:auto; display:block }
+  th     { background:var(--teal); color:#fff; padding:10px 14px; text-align:left; font-weight:600; white-space:nowrap }
+  td     { padding:9px 14px; border-bottom:1px solid var(--border); white-space:nowrap }
+  tr:nth-child(even) td { background:#f8fafc }
+  tr:hover td { background:#f0fdfa }
+  code   { background:#f1f5f9; padding:2px 7px; border-radius:4px; font-size:.83em; color:#0f766e }
+  .sub-head { font-weight:600; color:var(--muted); font-size:.82em; text-transform:uppercase;
+               letter-spacing:.06em; margin:0 0 14px }
+  .badge-purple { background:#ede9fe; color:#5b21b6; padding:3px 10px; border-radius:12px;
+                   font-size:.78em; font-weight:600 }
+  .badge-teal   { background:var(--teal-lt); color:var(--teal-dk); padding:3px 10px; border-radius:12px;
+                   font-size:.78em; font-weight:600 }
+  .scroll-wrap  { overflow-x:auto }
+</style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<div class="header">
+  <h1>IDX Exchange — Feature Engineering Report</h1>
+  <p>Week 6 Deliverable: Market Metrics &amp; Segment Analysis</p>
+  <div class="meta">
+    <span>Author: Ruoyu Wang</span>
+    <span>Date: May 21, 2026</span>
+    <span>Source: sold_final_clean.csv</span>
+    <span>CRMLS Jan 2024 – Apr 2026</span>
+  </div>
+</div>
+
+<!-- ══════════ CONTAINER ══════════ -->
+<div class="container">
+
+  <!-- ── 1. Overview KPIs ── -->
+  <div class="section">
+    <h2>1. Overview</h2>
+    <div class="kpi-grid">
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">414,184</div>
+  <div class="kpi-label">Total Records</div>
+  <div class="kpi-sub">Sold transactions</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">96</div>
+  <div class="kpi-label">Total Columns</div>
+  <div class="kpi-sub">After feature engineering</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">8</div>
+  <div class="kpi-label">New Features</div>
+  <div class="kpi-sub">Engineered this week</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">55</div>
+  <div class="kpi-label">County Groups</div>
+  <div class="kpi-sub">Segment analysis</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">20</div>
+  <div class="kpi-label">Property Subtypes</div>
+  <div class="kpi-sub">Segment analysis</div>
+</div>
+      
+<div class="kpi">
+  <div class="kpi-val" style="color:#0d9488">28</div>
+  <div class="kpi-label">Monthly Periods</div>
+  <div class="kpi-sub">Jan 2024 – Apr 2026</div>
+</div>
+    </div>
+  </div>
+
+  <!-- ── 2. Engineered Features ── -->
+  <div class="section">
+    <h2>2. Engineered Features</h2>
+    <p style="margin-bottom:18px;font-size:.9em;color:var(--muted)">
+      All features derived from the cleaned sold dataset. Records with null source fields produce null engineered values.
+    </p>
+    <div class="scroll-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature Name</th>
+          <th>Formula</th>
+          <th>Purpose</th>
+          <th>Valid Records</th>
+          <th>Coverage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+      <td><code>price_ratio</code></td>
+      <td><code style="color:#7c3aed">ClosePrice / OriginalListPrice</code></td>
+      <td>ClosePrice / OriginalListPrice — measures negotiation strength</td>
+      <td style="text-align:right">413,421<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:99.8%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">99.8%</td>
+    </tr><tr>
+      <td><code>close_to_orig_list_ratio</code></td>
+      <td><code style="color:#7c3aed">ClosePrice / OriginalListPrice</code></td>
+      <td>Captures full price-reduction history from original ask</td>
+      <td style="text-align:right">413,421<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:99.8%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">99.8%</td>
+    </tr><tr>
+      <td><code>ppsf</code></td>
+      <td><code style="color:#7c3aed">ClosePrice / LivingArea</code></td>
+      <td>Price per square foot — normalises price across property sizes</td>
+      <td style="text-align:right">413,798<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:99.9%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">99.9%</td>
+    </tr><tr>
+      <td><code>close_year</code></td>
+      <td><code style="color:#7c3aed">CloseDate.dt.year</code></td>
+      <td>Year of close</td>
+      <td style="text-align:right">414,184<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:100.0%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">100.0%</td>
+    </tr><tr>
+      <td><code>close_month</code></td>
+      <td><code style="color:#7c3aed">CloseDate.dt.month</code></td>
+      <td>Month of close (1-12)</td>
+      <td style="text-align:right">414,184<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:100.0%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">100.0%</td>
+    </tr><tr>
+      <td><code>yr_mo</code></td>
+      <td><code style="color:#7c3aed">CloseDate.dt.to_period('M')</code></td>
+      <td>Year-month string (YYYY-MM) for time-series joins</td>
+      <td style="text-align:right">414,184<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:100.0%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">100.0%</td>
+    </tr><tr>
+      <td><code>listing_to_contract_days</code></td>
+      <td><code style="color:#7c3aed">PurchaseContractDate - ListingContractDate</code></td>
+      <td>Days from listing to accepted offer (time-on-market until contract)</td>
+      <td style="text-align:right">413,988<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:100.0%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">100.0%</td>
+    </tr><tr>
+      <td><code>contract_to_close_days</code></td>
+      <td><code style="color:#7c3aed">CloseDate - PurchaseContractDate</code></td>
+      <td>Days from accepted offer to close of escrow</td>
+      <td style="text-align:right">413,989<br><div style="background:#e5e7eb;border-radius:3px;height:6px;margin-top:3px"><div style="width:100.0%;background:#0d9488;height:100%;border-radius:3px"></div></div></td>
+      <td style="text-align:right">100.0%</td>
+    </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ── 3. Sample Output ── -->
+  <div class="section">
+    <h2>3. Sample Output — 10 Rows</h2>
+    <p style="margin-bottom:14px;font-size:.85em;color:var(--muted)">
+      Sample of the <code>sold_with_features.csv</code> output showing all engineered columns populated.
+    </p>
+    <div class="scroll-wrap">
+    <table>
+      <thead><tr><th>ListingId</th><th>CountyOrParish</th><th>PropertySubType</th><th>CloseDate</th><th>ClosePrice</th><th>OriginalListPrice</th><th>LivingArea</th><th>price_ratio</th><th>ppsf</th><th>DaysOnMarket</th><th>listing_to_contract_days</th><th>contract_to_close_days</th><th>yr_mo</th></tr></thead>
+      <tbody><tr><td>ML81865679</td><td>San Mateo</td><td>Condominium</td><td>2024-01-26</td><td>240,000</td><td>499,000</td><td>1,140</td><td>0.4810</td><td>210.53</td><td>777</td><td>777.0</td><td>65.0</td><td>2024-01</td></tr><tr><td>210014555</td><td>San Diego</td><td>SingleFamilyResidence</td><td>2024-01-05</td><td>815,000</td><td>759,900</td><td>1,974</td><td>1.0725</td><td>412.87</td><td>33</td><td>114.0</td><td>919.0</td><td>2024-01</td></tr><tr><td>210008330</td><td>San Diego</td><td>SingleFamilyResidence</td><td>2024-01-05</td><td>810,000</td><td>739,900</td><td>1,974</td><td>1.0947</td><td>410.33</td><td>228</td><td>255.0</td><td>778.0</td><td>2024-01</td></tr><tr><td>SR24091473</td><td>Los Angeles</td><td>SingleFamilyResidence</td><td>2024-01-29</td><td>1,890,500</td><td>1,890,500</td><td>3,194</td><td>1.0000</td><td>591.89</td><td>0</td><td>0.0</td><td>0.0</td><td>2024-01</td></tr><tr><td>NS24001417</td><td>San Luis Obispo</td><td>SingleFamilyResidence</td><td>2024-01-02</td><td>2,100,000</td><td>2,100,000</td><td>3,736</td><td>1.0000</td><td>562.10</td><td>0</td><td>0.0</td><td>48.0</td><td>2024-01</td></tr><tr><td>C1-10456</td><td>Mendocino</td><td>SingleFamilyResidence</td><td>2024-01-22</td><td>1,950,000</td><td>1,950,000</td><td>2,100</td><td>1.0000</td><td>928.57</td><td>-36</td><td>32.0</td><td>34.0</td><td>2024-01</td></tr><tr><td>PTP2400188</td><td>San Diego</td><td>Condominium</td><td>2024-01-31</td><td>1,485,000</td><td>1,550,000</td><td>1,601</td><td>0.9581</td><td>927.55</td><td>0</td><td>1.0</td><td>21.0</td><td>2024-01</td></tr><tr><td>P1-16615</td><td>Los Angeles</td><td>Duplex</td><td>2024-01-30</td><td>1,130,000</td><td>999,000</td><td>2,136</td><td>1.1311</td><td>529.03</td><td>1</td><td>1.0</td><td>17.0</td><td>2024-01</td></tr><tr><td>24356357</td><td>Los Angeles</td><td>SingleFamilyResidence</td><td>2024-01-16</td><td>1,060,000</td><td>1,050,000</td><td>1,917</td><td>1.0095</td><td>552.95</td><td>34</td><td>34.0</td><td>6.0</td><td>2024-01</td></tr><tr><td>OC24025449</td><td>Orange</td><td>SingleFamilyResidence</td><td>2024-01-24</td><td>1,939,716</td><td>1,939,716</td><td>3,383</td><td>1.0000</td><td>573.37</td><td>0</td><td>1.0</td><td>47.0</td><td>2024-01</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ── 4. Segment by County ── -->
+  <div class="section">
+    <h2>4. Segment Analysis — By County (Top 25 by Volume)</h2>
+    <div class="scroll-wrap">
+    <table>
+      <thead><tr>
+  <th>Segment</th>
+  <th>Transactions</th>
+  <th>Median Close Price</th>
+  <th>Median PPSF</th>
+  <th>Median Price Ratio</th>
+  <th>Median DOM</th>
+  <th>Listing→Contract</th>
+  <th>Contract→Close</th>
+</tr></thead>
+      <tbody><tr>
+          <td><strong>Los Angeles</strong></td>
+          <td style="text-align:right">102,627</td>
+          <td style="text-align:right">$900,000</td>
+          <td style="text-align:right">$608</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">19 days</td>
+          <td style="text-align:right">25 days</td>
+          <td style="text-align:right">30 days</td>
+        </tr><tr>
+          <td><strong>Riverside</strong></td>
+          <td style="text-align:right">57,351</td>
+          <td style="text-align:right">$600,000</td>
+          <td style="text-align:right">$321</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">30 days</td>
+          <td style="text-align:right">38 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>San Diego</strong></td>
+          <td style="text-align:right">51,152</td>
+          <td style="text-align:right">$899,000</td>
+          <td style="text-align:right">$591</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">21 days</td>
+          <td style="text-align:right">26 days</td>
+        </tr><tr>
+          <td><strong>Orange</strong></td>
+          <td style="text-align:right">46,574</td>
+          <td style="text-align:right">$1,175,000</td>
+          <td style="text-align:right">$673</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">14 days</td>
+          <td style="text-align:right">25 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>San Bernardino</strong></td>
+          <td style="text-align:right">38,539</td>
+          <td style="text-align:right">$530,900</td>
+          <td style="text-align:right">$332</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">25 days</td>
+          <td style="text-align:right">32 days</td>
+          <td style="text-align:right">32 days</td>
+        </tr><tr>
+          <td><strong>Alameda</strong></td>
+          <td style="text-align:right">19,501</td>
+          <td style="text-align:right">$1,132,600</td>
+          <td style="text-align:right">$701</td>
+          <td style="text-align:right">1.0200</td>
+          <td style="text-align:right">14 days</td>
+          <td style="text-align:right">14 days</td>
+          <td style="text-align:right">23 days</td>
+        </tr><tr>
+          <td><strong>Contra Costa</strong></td>
+          <td style="text-align:right">18,815</td>
+          <td style="text-align:right">$820,000</td>
+          <td style="text-align:right">$520</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">14 days</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">23 days</td>
+        </tr><tr>
+          <td><strong>Santa Clara</strong></td>
+          <td style="text-align:right">18,150</td>
+          <td style="text-align:right">$1,600,000</td>
+          <td style="text-align:right">$964</td>
+          <td style="text-align:right">1.0200</td>
+          <td style="text-align:right">10 days</td>
+          <td style="text-align:right">10 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>Ventura</strong></td>
+          <td style="text-align:right">12,870</td>
+          <td style="text-align:right">$869,000</td>
+          <td style="text-align:right">$516</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">28 days</td>
+          <td style="text-align:right">34 days</td>
+          <td style="text-align:right">24 days</td>
+        </tr><tr>
+          <td><strong>San Mateo</strong></td>
+          <td style="text-align:right">7,054</td>
+          <td style="text-align:right">$1,700,000</td>
+          <td style="text-align:right">$1,049</td>
+          <td style="text-align:right">1.0100</td>
+          <td style="text-align:right">12 days</td>
+          <td style="text-align:right">12 days</td>
+          <td style="text-align:right">23 days</td>
+        </tr><tr>
+          <td><strong>San Luis Obispo</strong></td>
+          <td style="text-align:right">5,992</td>
+          <td style="text-align:right">$865,000</td>
+          <td style="text-align:right">$534</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">18 days</td>
+          <td style="text-align:right">30 days</td>
+          <td style="text-align:right">30 days</td>
+        </tr><tr>
+          <td><strong>Butte</strong></td>
+          <td style="text-align:right">4,127</td>
+          <td style="text-align:right">$399,000</td>
+          <td style="text-align:right">$267</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">23 days</td>
+          <td style="text-align:right">30 days</td>
+          <td style="text-align:right">30 days</td>
+        </tr><tr>
+          <td><strong>Monterey</strong></td>
+          <td style="text-align:right">3,893</td>
+          <td style="text-align:right">$902,000</td>
+          <td style="text-align:right">$590</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">20 days</td>
+          <td style="text-align:right">22 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>Kern</strong></td>
+          <td style="text-align:right">3,654</td>
+          <td style="text-align:right">$369,000</td>
+          <td style="text-align:right">$228</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">27 days</td>
+          <td style="text-align:right">33 days</td>
+          <td style="text-align:right">32 days</td>
+        </tr><tr>
+          <td><strong>Santa Cruz</strong></td>
+          <td style="text-align:right">2,919</td>
+          <td style="text-align:right">$1,200,000</td>
+          <td style="text-align:right">$735</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">19 days</td>
+          <td style="text-align:right">19 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>Merced</strong></td>
+          <td style="text-align:right">2,564</td>
+          <td style="text-align:right">$415,000</td>
+          <td style="text-align:right">$258</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">23 days</td>
+          <td style="text-align:right">28 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>Santa Barbara</strong></td>
+          <td style="text-align:right">2,032</td>
+          <td style="text-align:right">$715,000</td>
+          <td style="text-align:right">$426</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">22 days</td>
+          <td style="text-align:right">30 days</td>
+        </tr><tr>
+          <td><strong>Lake</strong></td>
+          <td style="text-align:right">1,789</td>
+          <td style="text-align:right">$310,000</td>
+          <td style="text-align:right">$213</td>
+          <td style="text-align:right">0.9400</td>
+          <td style="text-align:right">52 days</td>
+          <td style="text-align:right">59 days</td>
+          <td style="text-align:right">31 days</td>
+        </tr><tr>
+          <td><strong>San Joaquin</strong></td>
+          <td style="text-align:right">1,743</td>
+          <td style="text-align:right">$640,000</td>
+          <td style="text-align:right">$317</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">23 days</td>
+          <td style="text-align:right">25 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>Solano</strong></td>
+          <td style="text-align:right">1,555</td>
+          <td style="text-align:right">$568,000</td>
+          <td style="text-align:right">$339</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">22 days</td>
+          <td style="text-align:right">23 days</td>
+          <td style="text-align:right">26 days</td>
+        </tr><tr>
+          <td><strong>Fresno</strong></td>
+          <td style="text-align:right">1,364</td>
+          <td style="text-align:right">$410,000</td>
+          <td style="text-align:right">$254</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">23 days</td>
+          <td style="text-align:right">28 days</td>
+          <td style="text-align:right">30 days</td>
+        </tr><tr>
+          <td><strong>Madera</strong></td>
+          <td style="text-align:right">1,255</td>
+          <td style="text-align:right">$427,950</td>
+          <td style="text-align:right">$245</td>
+          <td style="text-align:right">0.9700</td>
+          <td style="text-align:right">37 days</td>
+          <td style="text-align:right">44 days</td>
+          <td style="text-align:right">31 days</td>
+        </tr><tr>
+          <td><strong>San Francisco</strong></td>
+          <td style="text-align:right">936</td>
+          <td style="text-align:right">$1,184,000</td>
+          <td style="text-align:right">$882</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">17 days</td>
+          <td style="text-align:right">17 days</td>
+          <td style="text-align:right">24 days</td>
+        </tr><tr>
+          <td><strong>Sacramento</strong></td>
+          <td style="text-align:right">887</td>
+          <td style="text-align:right">$472,000</td>
+          <td style="text-align:right">$315</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">18 days</td>
+          <td style="text-align:right">20 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>San Benito</strong></td>
+          <td style="text-align:right">825</td>
+          <td style="text-align:right">$779,000</td>
+          <td style="text-align:right">$410</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">30 days</td>
+          <td style="text-align:right">31 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ── 5. Segment by Property Subtype ── -->
+  <div class="section">
+    <h2>5. Segment Analysis — By Property Subtype</h2>
+    <div class="scroll-wrap">
+    <table>
+      <thead><tr>
+  <th>Segment</th>
+  <th>Transactions</th>
+  <th>Median Close Price</th>
+  <th>Median PPSF</th>
+  <th>Median Price Ratio</th>
+  <th>Median DOM</th>
+  <th>Listing→Contract</th>
+  <th>Contract→Close</th>
+</tr></thead>
+      <tbody><tr>
+          <td><strong>SingleFamilyResidence</strong></td>
+          <td style="text-align:right">308,795</td>
+          <td style="text-align:right">$890,000</td>
+          <td style="text-align:right">$532</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">17 days</td>
+          <td style="text-align:right">24 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>Condominium</strong></td>
+          <td style="text-align:right">68,355</td>
+          <td style="text-align:right">$627,000</td>
+          <td style="text-align:right">$565</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">24 days</td>
+          <td style="text-align:right">29 days</td>
+          <td style="text-align:right">28 days</td>
+        </tr><tr>
+          <td><strong>Townhouse</strong></td>
+          <td style="text-align:right">24,238</td>
+          <td style="text-align:right">$802,750</td>
+          <td style="text-align:right">$562</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">17 days</td>
+          <td style="text-align:right">22 days</td>
+          <td style="text-align:right">28 days</td>
+        </tr><tr>
+          <td><strong>ManufacturedOnLand</strong></td>
+          <td style="text-align:right">5,341</td>
+          <td style="text-align:right">$324,900</td>
+          <td style="text-align:right">$226</td>
+          <td style="text-align:right">0.9700</td>
+          <td style="text-align:right">30 days</td>
+          <td style="text-align:right">39 days</td>
+          <td style="text-align:right">34 days</td>
+        </tr><tr>
+          <td><strong>Duplex</strong></td>
+          <td style="text-align:right">2,263</td>
+          <td style="text-align:right">$915,000</td>
+          <td style="text-align:right">$545</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">21 days</td>
+          <td style="text-align:right">31 days</td>
+          <td style="text-align:right">32 days</td>
+        </tr><tr>
+          <td><strong>StockCooperative</strong></td>
+          <td style="text-align:right">1,662</td>
+          <td style="text-align:right">$360,000</td>
+          <td style="text-align:right">$396</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">20 days</td>
+          <td style="text-align:right">31 days</td>
+          <td style="text-align:right">45 days</td>
+        </tr><tr>
+          <td><strong>Unknown</strong></td>
+          <td style="text-align:right">796</td>
+          <td style="text-align:right">$804,000</td>
+          <td style="text-align:right">$570</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">19 days</td>
+          <td style="text-align:right">21 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>Cabin</strong></td>
+          <td style="text-align:right">469</td>
+          <td style="text-align:right">$236,000</td>
+          <td style="text-align:right">$288</td>
+          <td style="text-align:right">0.9100</td>
+          <td style="text-align:right">48 days</td>
+          <td style="text-align:right">56 days</td>
+          <td style="text-align:right">30 days</td>
+        </tr><tr>
+          <td><strong>Triplex</strong></td>
+          <td style="text-align:right">338</td>
+          <td style="text-align:right">$1,102,500</td>
+          <td style="text-align:right">$466</td>
+          <td style="text-align:right">0.9700</td>
+          <td style="text-align:right">29 days</td>
+          <td style="text-align:right">44 days</td>
+          <td style="text-align:right">36 days</td>
+        </tr><tr>
+          <td><strong>MixedUse</strong></td>
+          <td style="text-align:right">206</td>
+          <td style="text-align:right">$700,000</td>
+          <td style="text-align:right">$436</td>
+          <td style="text-align:right">0.9300</td>
+          <td style="text-align:right">52 days</td>
+          <td style="text-align:right">67 days</td>
+          <td style="text-align:right">32 days</td>
+        </tr><tr>
+          <td><strong>Quadruplex</strong></td>
+          <td style="text-align:right">142</td>
+          <td style="text-align:right">$1,262,750</td>
+          <td style="text-align:right">$371</td>
+          <td style="text-align:right">0.9500</td>
+          <td style="text-align:right">34 days</td>
+          <td style="text-align:right">44 days</td>
+          <td style="text-align:right">36 days</td>
+        </tr><tr>
+          <td><strong>OwnYourOwn</strong></td>
+          <td style="text-align:right">58</td>
+          <td style="text-align:right">$275,000</td>
+          <td style="text-align:right">$505</td>
+          <td style="text-align:right">0.9500</td>
+          <td style="text-align:right">41 days</td>
+          <td style="text-align:right">50 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>BoatSlip</strong></td>
+          <td style="text-align:right">45</td>
+          <td style="text-align:right">$185,000</td>
+          <td style="text-align:right">$1,750</td>
+          <td style="text-align:right">0.9400</td>
+          <td style="text-align:right">18 days</td>
+          <td style="text-align:right">20 days</td>
+          <td style="text-align:right">18 days</td>
+        </tr><tr>
+          <td><strong>ManufacturedHome</strong></td>
+          <td style="text-align:right">40</td>
+          <td style="text-align:right">$287,500</td>
+          <td style="text-align:right">$183</td>
+          <td style="text-align:right">0.9500</td>
+          <td style="text-align:right">42 days</td>
+          <td style="text-align:right">52 days</td>
+          <td style="text-align:right">30 days</td>
+        </tr><tr>
+          <td><strong>MobileHome</strong></td>
+          <td style="text-align:right">37</td>
+          <td style="text-align:right">$555,000</td>
+          <td style="text-align:right">$657</td>
+          <td style="text-align:right">0.9400</td>
+          <td style="text-align:right">48 days</td>
+          <td style="text-align:right">49 days</td>
+          <td style="text-align:right">7 days</td>
+        </tr><tr>
+          <td><strong>Loft</strong></td>
+          <td style="text-align:right">28</td>
+          <td style="text-align:right">$687,500</td>
+          <td style="text-align:right">$515</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">22 days</td>
+          <td style="text-align:right">36 days</td>
+          <td style="text-align:right">34 days</td>
+        </tr><tr>
+          <td><strong>CoOwnership</strong></td>
+          <td style="text-align:right">18</td>
+          <td style="text-align:right">$400,000</td>
+          <td style="text-align:right">$412</td>
+          <td style="text-align:right">0.9600</td>
+          <td style="text-align:right">24 days</td>
+          <td style="text-align:right">31 days</td>
+          <td style="text-align:right">41 days</td>
+        </tr><tr>
+          <td><strong>Farm</strong></td>
+          <td style="text-align:right">14</td>
+          <td style="text-align:right">$1,412,500</td>
+          <td style="text-align:right">$785</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">18 days</td>
+          <td style="text-align:right">14 days</td>
+          <td style="text-align:right">31 days</td>
+        </tr><tr>
+          <td><strong>Timeshare</strong></td>
+          <td style="text-align:right">13</td>
+          <td style="text-align:right">$790,000</td>
+          <td style="text-align:right">$313</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">51 days</td>
+          <td style="text-align:right">51 days</td>
+          <td style="text-align:right">15 days</td>
+        </tr><tr>
+          <td><strong>Studio</strong></td>
+          <td style="text-align:right">11</td>
+          <td style="text-align:right">$322,000</td>
+          <td style="text-align:right">$675</td>
+          <td style="text-align:right">0.9400</td>
+          <td style="text-align:right">18 days</td>
+          <td style="text-align:right">34 days</td>
+          <td style="text-align:right">33 days</td>
+        </tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ── 6. Segment by Listing Office ── -->
+  <div class="section">
+    <h2>6. Segment Analysis — Top 20 Listing Offices</h2>
+    <div class="scroll-wrap">
+    <table>
+      <thead><tr>
+  <th>Segment</th>
+  <th>Transactions</th>
+  <th>Median Close Price</th>
+  <th>Median PPSF</th>
+  <th>Median Price Ratio</th>
+  <th>Median DOM</th>
+  <th>Listing→Contract</th>
+  <th>Contract→Close</th>
+</tr></thead>
+      <tbody><tr>
+          <td><strong>Compass</strong></td>
+          <td style="text-align:right">28,874</td>
+          <td style="text-align:right">$1,350,000</td>
+          <td style="text-align:right">$756</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">14 days</td>
+          <td style="text-align:right">17 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>Coldwell Banker Realty</strong></td>
+          <td style="text-align:right">18,578</td>
+          <td style="text-align:right">$1,190,000</td>
+          <td style="text-align:right">$694</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">16 days</td>
+          <td style="text-align:right">21 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>Keller Williams Realty</strong></td>
+          <td style="text-align:right">8,115</td>
+          <td style="text-align:right">$870,000</td>
+          <td style="text-align:right">$540</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">21 days</td>
+          <td style="text-align:right">28 days</td>
+        </tr><tr>
+          <td><strong>First Team Real Estate</strong></td>
+          <td style="text-align:right">5,793</td>
+          <td style="text-align:right">$960,000</td>
+          <td style="text-align:right">$609</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">13 days</td>
+          <td style="text-align:right">26 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>Berkshire Hathaway HomeServices California Properties</strong></td>
+          <td style="text-align:right">5,455</td>
+          <td style="text-align:right">$950,000</td>
+          <td style="text-align:right">$598</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">23 days</td>
+          <td style="text-align:right">29 days</td>
+          <td style="text-align:right">28 days</td>
+        </tr><tr>
+          <td><strong>eXp Realty of California Inc</strong></td>
+          <td style="text-align:right">4,810</td>
+          <td style="text-align:right">$789,950</td>
+          <td style="text-align:right">$532</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">19 days</td>
+          <td style="text-align:right">25 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>Real Broker</strong></td>
+          <td style="text-align:right">4,718</td>
+          <td style="text-align:right">$845,000</td>
+          <td style="text-align:right">$558</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">24 days</td>
+          <td style="text-align:right">28 days</td>
+        </tr><tr>
+          <td><strong>Intero Real Estate Services</strong></td>
+          <td style="text-align:right">4,474</td>
+          <td style="text-align:right">$1,365,833</td>
+          <td style="text-align:right">$844</td>
+          <td style="text-align:right">1.0200</td>
+          <td style="text-align:right">12 days</td>
+          <td style="text-align:right">12 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>eXp Realty of California, Inc.</strong></td>
+          <td style="text-align:right">3,592</td>
+          <td style="text-align:right">$760,000</td>
+          <td style="text-align:right">$494</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">13 days</td>
+          <td style="text-align:right">21 days</td>
+          <td style="text-align:right">27 days</td>
+        </tr><tr>
+          <td><strong>Equity Union</strong></td>
+          <td style="text-align:right">3,522</td>
+          <td style="text-align:right">$860,000</td>
+          <td style="text-align:right">$478</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">28 days</td>
+          <td style="text-align:right">33 days</td>
+          <td style="text-align:right">26 days</td>
+        </tr><tr>
+          <td><strong>Century 21 Masters</strong></td>
+          <td style="text-align:right">3,325</td>
+          <td style="text-align:right">$628,000</td>
+          <td style="text-align:right">$360</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">21 days</td>
+          <td style="text-align:right">29 days</td>
+          <td style="text-align:right">32 days</td>
+        </tr><tr>
+          <td><strong>The Agency</strong></td>
+          <td style="text-align:right">2,695</td>
+          <td style="text-align:right">$1,665,000</td>
+          <td style="text-align:right">$803</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">17 days</td>
+          <td style="text-align:right">20 days</td>
+          <td style="text-align:right">25 days</td>
+        </tr><tr>
+          <td><strong>Coldwell Banker West</strong></td>
+          <td style="text-align:right">2,631</td>
+          <td style="text-align:right">$825,000</td>
+          <td style="text-align:right">$545</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">23 days</td>
+          <td style="text-align:right">26 days</td>
+        </tr><tr>
+          <td><strong>Redfin Corporation</strong></td>
+          <td style="text-align:right">2,568</td>
+          <td style="text-align:right">$790,000</td>
+          <td style="text-align:right">$517</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">18 days</td>
+          <td style="text-align:right">20 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr><tr>
+          <td><strong>Sotheby's International Realty</strong></td>
+          <td style="text-align:right">2,341</td>
+          <td style="text-align:right">$1,400,000</td>
+          <td style="text-align:right">$766</td>
+          <td style="text-align:right">0.9800</td>
+          <td style="text-align:right">24 days</td>
+          <td style="text-align:right">26 days</td>
+          <td style="text-align:right">26 days</td>
+        </tr><tr>
+          <td><strong>Pinnacle Estate Properties, Inc.</strong></td>
+          <td style="text-align:right">2,233</td>
+          <td style="text-align:right">$900,000</td>
+          <td style="text-align:right">$516</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">24 days</td>
+          <td style="text-align:right">27 days</td>
+          <td style="text-align:right">26 days</td>
+        </tr><tr>
+          <td><strong>Seven Gables Real Estate</strong></td>
+          <td style="text-align:right">2,009</td>
+          <td style="text-align:right">$1,050,000</td>
+          <td style="text-align:right">$641</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">11 days</td>
+          <td style="text-align:right">28 days</td>
+          <td style="text-align:right">28 days</td>
+        </tr><tr>
+          <td><strong>Berkshire Hathaway HomeService</strong></td>
+          <td style="text-align:right">1,943</td>
+          <td style="text-align:right">$1,090,000</td>
+          <td style="text-align:right">$635</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">17 days</td>
+          <td style="text-align:right">30 days</td>
+          <td style="text-align:right">28 days</td>
+        </tr><tr>
+          <td><strong>Redfin</strong></td>
+          <td style="text-align:right">1,895</td>
+          <td style="text-align:right">$985,000</td>
+          <td style="text-align:right">$660</td>
+          <td style="text-align:right">1.0000</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">15 days</td>
+          <td style="text-align:right">26 days</td>
+        </tr><tr>
+          <td><strong>Rodeo Realty</strong></td>
+          <td style="text-align:right">1,844</td>
+          <td style="text-align:right">$1,030,000</td>
+          <td style="text-align:right">$605</td>
+          <td style="text-align:right">0.9900</td>
+          <td style="text-align:right">20 days</td>
+          <td style="text-align:right">24 days</td>
+          <td style="text-align:right">29 days</td>
+        </tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ── 7. Monthly Trend ── -->
+  <div class="section">
+    <h2>7. Monthly Market Trend (Jan 2024 – Apr 2026)</h2>
+    <p style="margin-bottom:14px;font-size:.85em;color:var(--muted)">
+      Median values per month across all valid sold transactions.
+    </p>
+    <div class="scroll-wrap">
+    <table>
+      <thead><tr>
+        <th>Year-Month</th>
+        <th>Closed Sales</th>
+        <th>Median Close Price</th>
+        <th>Median PPSF ($/sqft)</th>
+        <th>Median Price Ratio</th>
+        <th>Median DOM</th>
+      </tr></thead>
+      <tbody><tr>
+      <td>2024-01</td>
+      <td style="text-align:right">11,173</td>
+      <td style="text-align:right">$745,000</td>
+      <td style="text-align:right">$503</td>
+      <td style="text-align:right">0.9900</td>
+      <td style="text-align:right">24 days</td>
+    </tr><tr>
+      <td>2024-02</td>
+      <td style="text-align:right">13,014</td>
+      <td style="text-align:right">$790,000</td>
+      <td style="text-align:right">$525</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">15 days</td>
+    </tr><tr>
+      <td>2024-03</td>
+      <td style="text-align:right">15,729</td>
+      <td style="text-align:right">$810,000</td>
+      <td style="text-align:right">$534</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">13 days</td>
+    </tr><tr>
+      <td>2024-04</td>
+      <td style="text-align:right">17,243</td>
+      <td style="text-align:right">$850,000</td>
+      <td style="text-align:right">$556</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">12 days</td>
+    </tr><tr>
+      <td>2024-05</td>
+      <td style="text-align:right">18,416</td>
+      <td style="text-align:right">$855,000</td>
+      <td style="text-align:right">$559</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">12 days</td>
+    </tr><tr>
+      <td>2024-06</td>
+      <td style="text-align:right">16,585</td>
+      <td style="text-align:right">$851,500</td>
+      <td style="text-align:right">$560</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">13 days</td>
+    </tr><tr>
+      <td>2024-07</td>
+      <td style="text-align:right">17,764</td>
+      <td style="text-align:right">$850,000</td>
+      <td style="text-align:right">$555</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">14 days</td>
+    </tr><tr>
+      <td>2024-08</td>
+      <td style="text-align:right">16,751</td>
+      <td style="text-align:right">$830,000</td>
+      <td style="text-align:right">$549</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">16 days</td>
+    </tr><tr>
+      <td>2024-09</td>
+      <td style="text-align:right">14,520</td>
+      <td style="text-align:right">$820,000</td>
+      <td style="text-align:right">$547</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">18 days</td>
+    </tr><tr>
+      <td>2024-10</td>
+      <td style="text-align:right">16,233</td>
+      <td style="text-align:right">$846,500</td>
+      <td style="text-align:right">$555</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">18 days</td>
+    </tr><tr>
+      <td>2024-11</td>
+      <td style="text-align:right">14,127</td>
+      <td style="text-align:right">$835,000</td>
+      <td style="text-align:right">$545</td>
+      <td style="text-align:right">0.9900</td>
+      <td style="text-align:right">20 days</td>
+    </tr><tr>
+      <td>2024-12</td>
+      <td style="text-align:right">14,173</td>
+      <td style="text-align:right">$815,000</td>
+      <td style="text-align:right">$530</td>
+      <td style="text-align:right">0.9900</td>
+      <td style="text-align:right">25 days</td>
+    </tr><tr>
+      <td>2025-01</td>
+      <td style="text-align:right">10,947</td>
+      <td style="text-align:right">$795,000</td>
+      <td style="text-align:right">$524</td>
+      <td style="text-align:right">0.9900</td>
+      <td style="text-align:right">28 days</td>
+    </tr><tr>
+      <td>2025-02</td>
+      <td style="text-align:right">12,063</td>
+      <td style="text-align:right">$831,000</td>
+      <td style="text-align:right">$545</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">18 days</td>
+    </tr><tr>
+      <td>2025-03</td>
+      <td style="text-align:right">14,363</td>
+      <td style="text-align:right">$815,000</td>
+      <td style="text-align:right">$537</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">17 days</td>
+    </tr><tr>
+      <td>2025-04</td>
+      <td style="text-align:right">15,787</td>
+      <td style="text-align:right">$830,000</td>
+      <td style="text-align:right">$546</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">16 days</td>
+    </tr><tr>
+      <td>2025-05</td>
+      <td style="text-align:right">15,483</td>
+      <td style="text-align:right">$830,000</td>
+      <td style="text-align:right">$543</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">17 days</td>
+    </tr><tr>
+      <td>2025-06</td>
+      <td style="text-align:right">15,270</td>
+      <td style="text-align:right">$839,000</td>
+      <td style="text-align:right">$540</td>
+      <td style="text-align:right">0.9900</td>
+      <td style="text-align:right">20 days</td>
+    </tr><tr>
+      <td>2025-07</td>
+      <td style="text-align:right">15,752</td>
+      <td style="text-align:right">$825,000</td>
+      <td style="text-align:right">$535</td>
+      <td style="text-align:right">0.9800</td>
+      <td style="text-align:right">22 days</td>
+    </tr><tr>
+      <td>2025-08</td>
+      <td style="text-align:right">15,172</td>
+      <td style="text-align:right">$815,000</td>
+      <td style="text-align:right">$529</td>
+      <td style="text-align:right">0.9800</td>
+      <td style="text-align:right">25 days</td>
+    </tr><tr>
+      <td>2025-09</td>
+      <td style="text-align:right">15,081</td>
+      <td style="text-align:right">$815,000</td>
+      <td style="text-align:right">$530</td>
+      <td style="text-align:right">0.9800</td>
+      <td style="text-align:right">25 days</td>
+    </tr><tr>
+      <td>2025-10</td>
+      <td style="text-align:right">15,848</td>
+      <td style="text-align:right">$818,000</td>
+      <td style="text-align:right">$528</td>
+      <td style="text-align:right">0.9800</td>
+      <td style="text-align:right">26 days</td>
+    </tr><tr>
+      <td>2025-11</td>
+      <td style="text-align:right">12,947</td>
+      <td style="text-align:right">$810,331</td>
+      <td style="text-align:right">$522</td>
+      <td style="text-align:right">0.9800</td>
+      <td style="text-align:right">26 days</td>
+    </tr><tr>
+      <td>2025-12</td>
+      <td style="text-align:right">13,929</td>
+      <td style="text-align:right">$790,000</td>
+      <td style="text-align:right">$511</td>
+      <td style="text-align:right">0.9800</td>
+      <td style="text-align:right">28 days</td>
+    </tr><tr>
+      <td>2026-01</td>
+      <td style="text-align:right">10,029</td>
+      <td style="text-align:right">$780,000</td>
+      <td style="text-align:right">$502</td>
+      <td style="text-align:right">0.9800</td>
+      <td style="text-align:right">33 days</td>
+    </tr><tr>
+      <td>2026-02</td>
+      <td style="text-align:right">12,251</td>
+      <td style="text-align:right">$800,000</td>
+      <td style="text-align:right">$525</td>
+      <td style="text-align:right">0.9900</td>
+      <td style="text-align:right">23 days</td>
+    </tr><tr>
+      <td>2026-03</td>
+      <td style="text-align:right">15,701</td>
+      <td style="text-align:right">$812,000</td>
+      <td style="text-align:right">$528</td>
+      <td style="text-align:right">0.9900</td>
+      <td style="text-align:right">18 days</td>
+    </tr><tr>
+      <td>2026-04</td>
+      <td style="text-align:right">16,522</td>
+      <td style="text-align:right">$837,000</td>
+      <td style="text-align:right">$540</td>
+      <td style="text-align:right">1.0000</td>
+      <td style="text-align:right">16 days</td>
+    </tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ── 8. Deliverable Checklist ── -->
+  <div class="section">
+    <h2>8. Week 6 Deliverable Checklist</h2>
+    <table>
+      <thead><tr><th>Handbook Requirement</th><th>Status</th><th>Output Column</th></tr></thead>
+      <tbody>
+        <tr><td>Price Ratio (ClosePrice / OriginalListPrice)</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td><code>price_ratio</code></td></tr>
+        <tr><td>Close-to-Original-List Ratio</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td><code>close_to_orig_list_ratio</code></td></tr>
+        <tr><td>Price Per Square Foot</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td><code>ppsf</code></td></tr>
+        <tr><td>Year / Month / YrMo from CloseDate</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td><code>close_year</code>, <code>close_month</code>, <code>yr_mo</code></td></tr>
+        <tr><td>Listing-to-Contract Days</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td><code>listing_to_contract_days</code></td></tr>
+        <tr><td>Contract-to-Close Days</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td><code>contract_to_close_days</code></td></tr>
+        <tr><td>Segment by PropertyType / PropertySubType</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td>segment_by_subtype.csv</td></tr>
+        <tr><td>Segment by CountyOrParish</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td>segment_by_county.csv</td></tr>
+        <tr><td>Segment by ListOfficeName</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td>segment_by_office.csv (Top 20)</td></tr>
+        <tr><td>Sample output table with new columns</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td>Section 3 above</td></tr>
+        <tr><td>Monthly market trend time-series</td>
+            <td><span class="badge-teal">DONE</span></td>
+            <td>monthly_market_trend.csv</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center;color:var(--muted);font-size:.8em;padding:20px 0">
+    IDX Exchange Data Analyst Internship — Week 6 Deliverable — Generated May 21, 2026
+  </div>
+</div>
+</body>
+</html>

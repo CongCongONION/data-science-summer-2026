@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDX Exchange — Week 3 Data Cleaning Report</title>
+<style>
+  /* ── Reset & base ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f0fdf4;
+    color: #1f2937;
+    line-height: 1.65;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #064e3b 0%, #0d9488 60%, #14b8a6 100%);
+    color: #fff;
+    padding: 48px 60px 40px;
+  }
+  .header-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .header h1 { font-size: 2em; font-weight: 800; letter-spacing: -0.5px; }
+  .header .sub {
+    font-size: 1em; opacity: 0.85; margin-top: 6px;
+  }
+  .header .meta {
+    font-size: 0.82em; opacity: 0.65; margin-top: 16px;
+  }
+  .week-badge {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 24px;
+    padding: 6px 18px;
+    font-size: 0.85em;
+    font-weight: 700;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  /* ── Pipeline progress strip ── */
+  .pipeline {
+    background: #fff;
+    border-bottom: 1px solid #d1fae5;
+    padding: 14px 60px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .pipe-step {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.82em; font-weight: 600; color: #9ca3af;
+    white-space: nowrap;
+  }
+  .pipe-step.done { color: #0f766e; }
+  .pipe-step.active { color: #0d9488; }
+  .pipe-step .dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75em; font-weight: 700;
+    background: #e5e7eb; color: #9ca3af;
+  }
+  .pipe-step.done .dot { background: #0f766e; color: #fff; }
+  .pipe-step.active .dot { background: #14b8a6; color: #fff; box-shadow: 0 0 0 3px #ccfbf1; }
+  .pipe-sep { color: #d1fae5; margin: 0 10px; font-size: 1.2em; }
+
+  /* ── TOC ── */
+  .toc {
+    background: #fff;
+    border-left: 4px solid #0d9488;
+    margin: 28px 48px;
+    padding: 18px 28px;
+    border-radius: 6px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .toc h2 { color: #0f766e; font-size: 1em; font-weight: 700; margin-bottom: 10px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 4px 0; font-size: 0.9em; }
+  .toc a { color: #0d9488; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ── Section cards ── */
+  .section {
+    background: #fff;
+    margin: 22px 48px;
+    padding: 28px 34px;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    border-top: 3px solid #0d9488;
+  }
+  h2.section-title {
+    font-size: 1.15em;
+    color: #064e3b;
+    font-weight: 800;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #d1fae5;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2.section-title .step-num {
+    background: #0d9488; color: #fff;
+    border-radius: 50%; width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.85em; font-weight: 700; flex-shrink: 0;
+  }
+  h3 { color: #0f766e; margin: 20px 0 10px; font-size: 0.98em; font-weight: 700; }
+
+  /* ── Scorecard KPIs ── */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .score-kpi {
+    border: 1px solid #d1fae5;
+    border-radius: 8px;
+    padding: 16px 18px;
+    background: #f0fdf4;
+    position: relative;
+    overflow: hidden;
+  }
+  .score-kpi::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: #0d9488;
+  }
+  .score-kpi.warn::before { background: #f59e0b; }
+  .score-kpi.danger::before { background: #dc2626; }
+  .score-kpi.neutral::before { background: #6366f1; }
+  .score-kpi .val {
+    font-size: 1.65em; font-weight: 800; color: #064e3b; line-height: 1;
+  }
+  .score-kpi.warn .val { color: #b45309; }
+  .score-kpi.danger .val { color: #b91c1c; }
+  .score-kpi.neutral .val { color: #4338ca; }
+  .score-kpi .lbl {
+    font-size: 0.75em; color: #6b7280; margin-top: 5px;
+  }
+
+  /* ── Before / After cards ── */
+  .ba-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .ba-card {
+    border: 1px solid #d1fae5;
+    border-radius: 8px;
+    padding: 16px 18px;
+    background: #f9fafb;
+  }
+  .ba-title {
+    font-size: 0.85em; font-weight: 700; color: #374151; margin-bottom: 12px;
+  }
+  .ba-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ba-box {
+    flex: 1; border-radius: 6px; padding: 10px 12px; text-align: center;
+  }
+  .ba-box.before {
+    background: #fee2e2; border: 1px solid #fca5a5;
+  }
+  .ba-box.after {
+    background: #dcfce7; border: 1px solid #86efac;
+  }
+  .ba-label { font-size: 0.7em; color: #6b7280; }
+  .ba-num { font-size: 1.2em; font-weight: 700; color: #1f2937; }
+  .ba-arrow { font-size: 1.3em; color: #9ca3af; }
+  .ba-delta {
+    font-size: 1.05em; font-weight: 700; min-width: 50px; text-align: right;
+  }
+  .ba-note {
+    margin-top: 8px; font-size: 0.78em; color: #6b7280;
+    border-top: 1px dashed #e5e7eb; padding-top: 8px;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.86em;
+  }
+  th {
+    background: #064e3b; color: #fff;
+    padding: 8px 12px; text-align: left; font-weight: 600;
+  }
+  td { padding: 7px 12px; border-bottom: 1px solid #f0fdf4; }
+  tr:hover td { background: #f0fdf4; }
+
+  /* ── Column badges ── */
+  .col-badge {
+    display: inline-block;
+    background: #fee2e2; color: #991b1b;
+    border-radius: 4px; padding: 2px 7px;
+    font-size: 0.75em; font-family: monospace;
+    margin: 2px 3px;
+  }
+  .col-badge.kept {
+    background: #dcfce7; color: #166534;
+  }
+
+  /* ── Notes ── */
+  .note {
+    background: #f0fdf4;
+    border-left: 3px solid #0d9488;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #374151;
+    margin: 12px 0;
+  }
+  .note.warn {
+    background: #fffbeb; border-left-color: #f59e0b;
+  }
+
+  /* ── Two-col layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 16px 0;
+  }
+  @media (max-width: 800px) {
+    .two-col { grid-template-columns: 1fr; }
+    .header { padding: 30px 24px; }
+    .section { margin: 16px 16px; padding: 20px 18px; }
+    .pipeline { padding: 12px 16px; }
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 28px;
+    color: #9ca3af;
+    font-size: 0.8em;
+    border-top: 1px solid #d1fae5;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>IDX Exchange — MLS Data Cleaning</h1>
+      <div class="sub">Weeks 4–5 Deliverable: Column Pruning, Date Standardisation &amp; Numeric Quality Flags</div>
+      <div class="meta">
+        Author: Ruoyu Wang &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp;
+        Source: CRMLS Residential | Jan 2024 – Mar 2026
+      </div>
+    </div>
+    <div class="week-badge">Week 3 Report</div>
+  </div>
+</div>
+
+<!-- ═══ PIPELINE STRIP ═══ -->
+<div class="pipeline">
+  <div class="pipe-step done">
+    <div class="dot">✓</div> Data Extraction
+  </div>
+  <span class="pipe-sep">›</span>
+  <div class="pipe-step done">
+    <div class="dot">✓</div> Aggregation
+  </div>
+  <span class="pipe-sep">›</span>
+  <div class="pipe-step done">
+    <div class="dot">✓</div> EDA &amp; Enrichment
+  </div>
+  <span class="pipe-sep">›</span>
+  <div class="pipe-step active">
+    <div class="dot">4</div> Data Cleaning ← you are here
+  </div>
+  <span class="pipe-sep">›</span>
+  <div class="pipe-step">
+    <div class="dot">5</div> Feature Engineering
+  </div>
+  <span class="pipe-sep">›</span>
+  <div class="pipe-step">
+    <div class="dot">6</div> Outlier Detection
+  </div>
+  <span class="pipe-sep">›</span>
+  <div class="pipe-step">
+    <div class="dot">7</div> Tableau Dashboards
+  </div>
+</div>
+
+<!-- ═══ TOC ═══ -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">Cleaning Scorecard</a></li>
+    <li><a href="#s2">Column Pruning — Dropping High-Null Columns</a></li>
+    <li><a href="#s3">Date Field Standardisation</a></li>
+    <li><a href="#s4">Numeric Quality Flags</a></li>
+    <li><a href="#s5">Geographic Completeness</a></li>
+    <li><a href="#s6">Output Files &amp; Next Steps</a></li>
+  </ol>
+</div>
+
+<!-- ═══ SECTION 1 — SCORECARD ═══ -->
+<div class="section" id="s1">
+  <h2 class="section-title">
+    <span class="step-num">1</span>
+    Cleaning Scorecard
+  </h2>
+  <p style="margin-bottom:16px;color:#6b7280;font-size:0.9em;">
+    High-level results of all cleaning operations applied to both datasets.
+    No rows were deleted — quality flags are added as columns for downstream filtering in Week 7.
+  </p>
+  <div class="score-grid">
+    <div class="score-kpi">
+      <div class="val">397,603</div>
+      <div class="lbl">Sold records (unchanged)</div>
+    </div>
+    <div class="score-kpi">
+      <div class="val">540,183</div>
+      <div class="lbl">Listed records (unchanged)</div>
+    </div>
+    <div class="score-kpi danger">
+      <div class="val">17</div>
+      <div class="lbl">Sold columns dropped (>90% null)</div>
+    </div>
+    <div class="score-kpi danger">
+      <div class="val">13</div>
+      <div class="lbl">Listed columns dropped (>90% null)</div>
+    </div>
+    <div class="score-kpi warn">
+      <div class="val">58</div>
+      <div class="lbl">Sold: listing date after close date</div>
+    </div>
+    <div class="score-kpi warn">
+      <div class="val">355</div>
+      <div class="lbl">Sold rows with any quality flag</div>
+    </div>
+    <div class="score-kpi warn">
+      <div class="val">507</div>
+      <div class="lbl">Listed rows with any quality flag</div>
+    </div>
+    <div class="score-kpi neutral">
+      <div class="val">76</div>
+      <div class="lbl">Sold columns after pruning</div>
+    </div>
+    <div class="score-kpi neutral">
+      <div class="val">76</div>
+      <div class="lbl">Listed columns after pruning</div>
+    </div>
+  </div>
+
+  <h3>Flag Rate Overview</h3>
+  
+<div style="margin-bottom:12px;">
+  <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+    <span>Sold — rows with any quality flag</span>
+    <span style="font-weight:600;color:#0f766e;">355 <span style="color:#6b7280;font-weight:400;">/ 397,603 (0.09%)</span></span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;"><div style="width:0.1%;background:#f59e0b;height:100%;border-radius:4px;"></div></div>
+</div>
+  
+<div style="margin-bottom:12px;">
+  <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+    <span>Listed — rows with any quality flag</span>
+    <span style="font-weight:600;color:#0f766e;">507 <span style="color:#6b7280;font-weight:400;">/ 540,183 (0.09%)</span></span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;"><div style="width:0.1%;background:#f59e0b;height:100%;border-radius:4px;"></div></div>
+</div>
+  
+<div style="margin-bottom:12px;">
+  <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+    <span>Sold — date inconsistency flag</span>
+    <span style="font-weight:600;color:#0f766e;">58 <span style="color:#6b7280;font-weight:400;">/ 397,603 (0.01%)</span></span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;"><div style="width:0.0%;background:#ef4444;height:100%;border-radius:4px;"></div></div>
+</div>
+
+  <div class="note" style="margin-top:14px;">
+    <strong>Strategy:</strong> Flagged records are <em>retained</em> in the dataset with boolean indicator columns
+    (<code>*_invalid_flag</code>, <code>listing_after_close_flag</code>, <code>any_invalid_flag</code>).
+    Hard removal will happen in Week 7 (outlier detection) after final thresholds are set with the team.
+  </div>
+</div>
+
+<!-- ═══ SECTION 2 — COLUMN PRUNING ═══ -->
+<div class="section" id="s2">
+  <h2 class="section-title">
+    <span class="step-num">2</span>
+    Column Pruning — Dropping High-Null Columns
+  </h2>
+  <p style="color:#6b7280;font-size:0.9em;margin-bottom:16px;">
+    Any column with more than 90% missing values was removed. These columns carry negligible
+    analytical value and inflate file size and memory usage.
+  </p>
+
+  <div class="ba-grid">
+    
+<div class="ba-card">
+  <div class="ba-title"> Sold — Column Count</div>
+  <div class="ba-row">
+    <div class="ba-box before">
+      <div class="ba-label">Before</div>
+      <div class="ba-num">86</div>
+    </div>
+    <div class="ba-arrow">→</div>
+    <div class="ba-box after">
+      <div class="ba-label">After</div>
+      <div class="ba-num">76</div>
+    </div>
+    <div class="ba-delta" style="color:#16a34a;">-10</div>
+  </div>
+  <div class="ba-note">17 columns removed · 17 net change (includes 7 new flag columns)</div>
+</div>
+    
+<div class="ba-card">
+  <div class="ba-title"> Listed — Column Count</div>
+  <div class="ba-row">
+    <div class="ba-box before">
+      <div class="ba-label">Before</div>
+      <div class="ba-num">86</div>
+    </div>
+    <div class="ba-arrow">→</div>
+    <div class="ba-box after">
+      <div class="ba-label">After</div>
+      <div class="ba-num">76</div>
+    </div>
+    <div class="ba-delta" style="color:#16a34a;">-10</div>
+  </div>
+  <div class="ba-note">13 columns removed · 13 net change (includes 3 new flag columns)</div>
+</div>
+  </div>
+
+  <div class="two-col" style="margin-top:20px;">
+    <div>
+      <div style="margin:10px 0;"><strong>Sold — 17 dropped:</strong><br><div style="margin-top:8px;"><span class="col-badge">WaterfrontYN</span><span class="col-badge">BasementYN</span><span class="col-badge">FireplacesTotal</span><span class="col-badge">AboveGradeFinishedArea</span><span class="col-badge">TaxAnnualAmount</span><span class="col-badge">BuilderName</span><span class="col-badge">TaxYear</span><span class="col-badge">BuildingAreaTotal</span><span class="col-badge">ElementarySchoolDistrict</span><span class="col-badge">CoBuyerAgentFirstName</span><span class="col-badge">BelowGradeFinishedArea</span><span class="col-badge">BusinessType</span><span class="col-badge">CoveredSpaces</span><span class="col-badge">LotSizeDimensions</span><span class="col-badge">MiddleOrJuniorSchoolDistrict</span><span class="col-badge">OriginatingSystemName</span><span class="col-badge">OriginatingSystemSubName</span></div></div>
+    </div>
+    <div>
+      <div style="margin:10px 0;"><strong>Listed — 13 dropped:</strong><br><div style="margin-top:8px;"><span class="col-badge">FireplacesTotal</span><span class="col-badge">AboveGradeFinishedArea</span><span class="col-badge">TaxAnnualAmount</span><span class="col-badge">BuilderName</span><span class="col-badge">TaxYear</span><span class="col-badge">BuildingAreaTotal</span><span class="col-badge">ElementarySchoolDistrict</span><span class="col-badge">CoBuyerAgentFirstName</span><span class="col-badge">BelowGradeFinishedArea</span><span class="col-badge">BusinessType</span><span class="col-badge">CoveredSpaces</span><span class="col-badge">LotSizeDimensions</span><span class="col-badge">MiddleOrJuniorSchoolDistrict</span></div></div>
+    </div>
+  </div>
+
+  <div class="note">
+    Eight columns are <strong>100% null</strong> in the Sold dataset (TaxYear, FireplacesTotal, TaxAnnualAmount,
+    AboveGradeFinishedArea, ElementarySchoolDistrict, BusinessType, CoveredSpaces,
+    MiddleOrJuniorSchoolDistrict) — these were flagged in Week 2 and have now been dropped.
+  </div>
+</div>
+
+<!-- ═══ SECTION 3 — DATE STANDARDISATION ═══ -->
+<div class="section" id="s3">
+  <h2 class="section-title">
+    <span class="step-num">3</span>
+    Date Field Standardisation
+  </h2>
+
+  <div class="two-col">
+    <div>
+      <h3>Sold — Date Columns Parsed</h3>
+      <table>
+        <thead><tr><th>Column</th><th>New NaT Values</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><code>ListingContractDate</code></td><td style="text-align:right;">0</td><td style="color:#16a34a;font-weight:600;">✓ Parsed</td></tr><tr><td><code>CloseDate</code></td><td style="text-align:right;">0</td><td style="color:#16a34a;font-weight:600;">✓ Parsed</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>Listed — Date Columns Parsed</h3>
+      <table>
+        <thead><tr><th>Column</th><th>New NaT Values</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><code>ListingContractDate</code></td><td style="text-align:right;">0</td><td style="color:#16a34a;font-weight:600;">✓ Parsed</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h3>Date Consistency Check — Sold Dataset</h3>
+  <div class="score-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="score-kpi warn">
+      <div class="val">58</div>
+      <div class="lbl">Records: ListingDate &gt; CloseDate</div>
+    </div>
+    <div class="score-kpi">
+      <div class="val">397,545</div>
+      <div class="lbl">Records: date order OK</div>
+    </div>
+    <div class="score-kpi">
+      <div class="val">99.99%</div>
+      <div class="lbl">Date-consistent rows</div>
+    </div>
+  </div>
+  
+<div style="margin-bottom:12px;">
+  <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+    <span>listing_after_close_flag rate</span>
+    <span style="font-weight:600;color:#0f766e;">58 <span style="color:#6b7280;font-weight:400;">/ 397,603 (0.01%)</span></span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;"><div style="width:0.0%;background:#ef4444;height:100%;border-radius:4px;"></div></div>
+</div>
+  <div class="note warn">
+    <strong>Flag added:</strong> <code>listing_after_close_flag = 1</code> on all 58 records
+    where <code>ListingContractDate &gt; CloseDate</code>.
+    These will be reviewed for data-entry errors or escrow re-listings in Week 7.
+  </div>
+</div>
+
+<!-- ═══ SECTION 4 — NUMERIC FLAGS ═══ -->
+<div class="section" id="s4">
+  <h2 class="section-title">
+    <span class="step-num">4</span>
+    Numeric Quality Flags
+  </h2>
+  <p style="color:#6b7280;font-size:0.9em;margin-bottom:16px;">
+    Rules applied per column. Each violation adds a boolean <code>*_invalid_flag</code> column.
+    A composite <code>any_invalid_flag</code> is also added (1 if any rule fires).
+  </p>
+
+  <div class="two-col">
+    <div>
+      <h3>Sold Dataset</h3>
+      
+<table>
+  <thead><tr><th>Column</th><th>Rule</th><th>Flagged</th><th>%</th><th>Rate</th></tr></thead>
+  <tbody>
+<tr>
+  <td><code>ClosePrice</code></td>
+  <td>ClosePrice <= 0</td>
+  <td style="text-align:right;font-weight:600;">1</td>
+  <td style="text-align:right;color:#6b7280;">0.000%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>ClosePrice</code></td>
+  <td>ClosePrice > $50M</td>
+  <td style="text-align:right;font-weight:600;">42</td>
+  <td style="text-align:right;color:#6b7280;">0.011%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>ListPrice</code></td>
+  <td>ListPrice <= 0</td>
+  <td style="text-align:right;font-weight:600;">0</td>
+  <td style="text-align:right;color:#6b7280;">0.000%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>OriginalListPrice</code></td>
+  <td>OriginalListPrice <= 0</td>
+  <td style="text-align:right;font-weight:600;">2</td>
+  <td style="text-align:right;color:#6b7280;">0.001%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>OriginalListPrice</code></td>
+  <td>OriginalListPrice > $50M</td>
+  <td style="text-align:right;font-weight:600;">73</td>
+  <td style="text-align:right;color:#6b7280;">0.018%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>LivingArea</code></td>
+  <td>LivingArea <= 0</td>
+  <td style="text-align:right;font-weight:600;">144</td>
+  <td style="text-align:right;color:#6b7280;">0.036%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>DaysOnMarket</code></td>
+  <td>DaysOnMarket < 0</td>
+  <td style="text-align:right;font-weight:600;">46</td>
+  <td style="text-align:right;color:#6b7280;">0.012%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr></tbody>
+</table>
+      <div style="margin-top:10px;">
+        
+<div style="margin-bottom:12px;">
+  <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+    <span>any_invalid_flag (SOLD)</span>
+    <span style="font-weight:600;color:#0f766e;">355 <span style="color:#6b7280;font-weight:400;">/ 397,603 (0.09%)</span></span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;"><div style="width:0.1%;background:#f59e0b;height:100%;border-radius:4px;"></div></div>
+</div>
+      </div>
+    </div>
+    <div>
+      <h3>Listed Dataset</h3>
+      
+<table>
+  <thead><tr><th>Column</th><th>Rule</th><th>Flagged</th><th>%</th><th>Rate</th></tr></thead>
+  <tbody>
+<tr>
+  <td><code>ListPrice</code></td>
+  <td>ListPrice <= 0</td>
+  <td style="text-align:right;font-weight:600;">0</td>
+  <td style="text-align:right;color:#6b7280;">0.000%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>ListPrice</code></td>
+  <td>ListPrice > $50M</td>
+  <td style="text-align:right;font-weight:600;">151</td>
+  <td style="text-align:right;color:#6b7280;">0.028%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr>
+<tr>
+  <td><code>LivingArea</code></td>
+  <td>LivingArea <= 0</td>
+  <td style="text-align:right;font-weight:600;">359</td>
+  <td style="text-align:right;color:#6b7280;">0.066%</td>
+  <td style="min-width:100px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.1%;background:#f59e0b;height:100%;border-radius:4px;"></div></div></td>
+</tr></tbody>
+</table>
+      <div style="margin-top:10px;">
+        
+<div style="margin-bottom:12px;">
+  <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+    <span>any_invalid_flag (LISTED)</span>
+    <span style="font-weight:600;color:#0f766e;">507 <span style="color:#6b7280;font-weight:400;">/ 540,183 (0.09%)</span></span>
+  </div>
+  <div style="background:#e5e7eb;border-radius:4px;height:8px;overflow:hidden;"><div style="width:0.1%;background:#f59e0b;height:100%;border-radius:4px;"></div></div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:16px;">
+    <strong>Notable:</strong> OriginalListPrice has 73 records &gt;$50M including a maximum of ~$1.39B —
+    almost certainly a data-entry error in the source MLS system. These will be hard-removed in Week 7
+    after reviewing with the team. LivingArea records ≤ 0 (144 sold, 359 listed) are likely sentinel
+    values (−1, 0) from the API and will also be handled then.
+  </div>
+</div>
+
+<!-- ═══ SECTION 5 — GEOGRAPHIC ═══ -->
+<div class="section" id="s5">
+  <h2 class="section-title">
+    <span class="step-num">5</span>
+    Geographic Completeness
+  </h2>
+  <p style="color:#6b7280;font-size:0.9em;margin-bottom:16px;">
+    Null-rate audit for key location fields. PostalCode, City, County, and State show near-complete
+    coverage. Lat/Lon completeness varies — the enriched <code>latfilled</code>/<code>lonfilled</code>
+    columns were already dropped due to >90% null.
+  </p>
+
+  <div class="two-col">
+    <div>
+      <h3>Sold Dataset</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Null Count</th><th>Null %</th><th>Rate</th><th>Status</th></tr></thead>
+        <tbody>
+          
+<tr>
+  <td>Latitude</td>
+  <td style="text-align:right;">15,825</td>
+  <td style="text-align:right;">4.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:4.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>Longitude</td>
+  <td style="text-align:right;">15,825</td>
+  <td style="text-align:right;">4.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:4.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>PostalCode</td>
+  <td style="text-align:right;">0</td>
+  <td style="text-align:right;">0.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>City</td>
+  <td style="text-align:right;">318</td>
+  <td style="text-align:right;">0.1%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.1%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>CountyOrParish</td>
+  <td style="text-align:right;">0</td>
+  <td style="text-align:right;">0.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>StateOrProvince</td>
+  <td style="text-align:right;">0</td>
+  <td style="text-align:right;">0.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>Listed Dataset</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Null Count</th><th>Null %</th><th>Rate</th><th>Status</th></tr></thead>
+        <tbody>
+          
+<tr>
+  <td>Latitude</td>
+  <td style="text-align:right;">80,163</td>
+  <td style="text-align:right;">14.8%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:14.8%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#ea580c;font-weight:600;">⚠ Partial</td>
+</tr>
+          
+<tr>
+  <td>Longitude</td>
+  <td style="text-align:right;">80,163</td>
+  <td style="text-align:right;">14.8%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:14.8%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#ea580c;font-weight:600;">⚠ Partial</td>
+</tr>
+          
+<tr>
+  <td>PostalCode</td>
+  <td style="text-align:right;">0</td>
+  <td style="text-align:right;">0.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>City</td>
+  <td style="text-align:right;">594</td>
+  <td style="text-align:right;">0.1%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.1%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>CountyOrParish</td>
+  <td style="text-align:right;">0</td>
+  <td style="text-align:right;">0.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+          
+<tr>
+  <td>StateOrProvince</td>
+  <td style="text-align:right;">54</td>
+  <td style="text-align:right;">0.0%</td>
+  <td style="min-width:120px;"><div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div style="width:0.0%;background:#6366f1;height:100%;border-radius:4px;"></div></div></td>
+  <td style="color:#16a34a;font-weight:600;">✓ Good</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    Lat/Lon is 4% null for Sold and 14.8% null for Listed — acceptable for regional mapping but
+    may affect granular spatial analysis. Postal code and county coverage is effectively 100%,
+    which is sufficient for the planned Tableau choropleth maps.
+  </div>
+</div>
+
+<!-- ═══ SECTION 6 — OUTPUTS ═══ -->
+<div class="section" id="s6">
+  <h2 class="section-title">
+    <span class="step-num">6</span>
+    Output Files &amp; Next Steps
+  </h2>
+
+  <h3>Files Produced (week3/data/)</h3>
+  <table>
+    <thead><tr><th>File</th><th>Description</th><th>Rows</th><th>Cols</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>sold_clean_flagged.csv</code></td>
+        <td>Sold dataset — columns pruned, dates parsed, quality flags added</td>
+        <td style="text-align:right;">397,603</td>
+        <td style="text-align:right;">76</td>
+      </tr>
+      <tr>
+        <td><code>listed_clean_flagged.csv</code></td>
+        <td>Listed dataset — columns pruned, dates parsed, quality flags added</td>
+        <td style="text-align:right;">540,183</td>
+        <td style="text-align:right;">76</td>
+      </tr>
+      <tr>
+        <td><code>cleaning_summary.json</code></td>
+        <td>Machine-readable summary of all cleaning steps and counts</td>
+        <td style="text-align:right;">—</td>
+        <td style="text-align:right;">—</td>
+      </tr>
+      <tr>
+        <td><code>numeric_flag_log.csv</code></td>
+        <td>Per-rule flag counts for every numeric cleaning rule applied</td>
+        <td style="text-align:right;">—</td>
+        <td style="text-align:right;">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:20px;">New Columns Added</h3>
+  <table style="width:auto;">
+    <thead><tr><th>Column</th><th>Dataset</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>listing_after_close_flag</code></td><td>Sold</td><td>1 if ListingContractDate &gt; CloseDate</td></tr>
+      <tr><td><code>ClosePrice_invalid_flag</code></td><td>Sold</td><td>1 if ClosePrice ≤ 0 OR &gt; $50M</td></tr>
+      <tr><td><code>OriginalListPrice_invalid_flag</code></td><td>Sold</td><td>1 if OLP ≤ 0 OR &gt; $50M</td></tr>
+      <tr><td><code>LivingArea_invalid_flag</code></td><td>Sold + Listed</td><td>1 if LivingArea ≤ 0</td></tr>
+      <tr><td><code>DaysOnMarket_invalid_flag</code></td><td>Sold</td><td>1 if DaysOnMarket &lt; 0</td></tr>
+      <tr><td><code>ListPrice_invalid_flag</code></td><td>Listed</td><td>1 if ListPrice ≤ 0 OR &gt; $50M</td></tr>
+      <tr><td><code>any_invalid_flag</code></td><td>Both</td><td>1 if any of the above flags fires</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:20px;">Upcoming — Week 6: Feature Engineering</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;">
+    <div class="note">
+      <strong>Price features:</strong><br>
+      · <code>price_per_sqft</code> = ClosePrice / LivingArea<br>
+      · <code>price_ratio</code> = ClosePrice / ListPrice<br>
+      · <code>list_price_change</code> = (ListPrice − OriginalListPrice) / OriginalListPrice
+    </div>
+    <div class="note">
+      <strong>Time features:</strong><br>
+      · <code>days_to_contract</code> = ContractDate − ListingContractDate<br>
+      · <code>contract_to_close</code> = CloseDate − ContractDate<br>
+      · <code>listing_month</code>, <code>listing_quarter</code>, <code>listing_year</code>
+    </div>
+  </div>
+</div>
+
+<footer>
+  IDX Exchange Data Analyst Internship &nbsp;·&nbsp;
+  Weeks 4–5 Report (Week 3 Deliverable) &nbsp;·&nbsp;
+  Generated April 2026 &nbsp;·&nbsp; Ruoyu Wang
+</footer>
+
+</body>
+</html>
