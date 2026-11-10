@@ -154,4 +154,4 @@ Both datasets cover **January 2024 – March 2026**, filtered to **Residential**
 
 ## Author
 
-**Ruoyu Wang** — Data Analyst Intern @ IDX Exchange
+
