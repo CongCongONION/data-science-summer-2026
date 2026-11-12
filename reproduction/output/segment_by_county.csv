@@ -1,0 +1,7 @@
+﻿CountyOrParish,ClosePrice_count,ClosePrice_median,ClosePrice_mean,ppsf_median,ppsf_mean,price_ratio_median,price_ratio_mean,DaysOnMarket_median,DaysOnMarket_mean,listing_to_contract_days_median,contract_to_close_days_median
+Los Angeles,2193,868000.0,1002315.55,474.05,495.79,0.99,0.99,29.0,35.42,29.0,37.0
+Orange,1437,851000.0,960919.97,468.02,485.41,0.99,0.99,29.0,35.19,29.0,37.0
+San Diego,1143,875000.0,1005451.44,477.92,490.5,0.99,0.99,28.0,33.65,28.0,38.0
+Riverside,758,856000.0,976451.19,481.34,496.61,0.99,0.99,30.0,37.0,30.0,37.0
+San Bernardino,566,896000.0,991681.98,478.65,500.05,0.99,0.99,27.5,34.46,28.0,37.0
+Ventura,324,861500.0,973376.54,467.84,484.99,0.99,0.99,29.0,33.59,29.0,37.0

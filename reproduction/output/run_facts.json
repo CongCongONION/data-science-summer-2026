@@ -1,0 +1,115 @@
+{
+  "aggregate": {
+    "sold_rows": 6549,
+    "listed_rows": 8501,
+    "data_kind": "sample (synthetic, CRMLS schema)"
+  },
+  "_author": "Anna",
+  "eda": {
+    "sold_median_close_price": 871000.0,
+    "sold_mean_close_price": 1278797.5263398993,
+    "sold_median_days_on_market": 29.0
+  },
+  "cleaning_phase1": {
+    "sold_dropped_columns": [
+      "ExpirationDate",
+      "VirtualTourURLUnbranded",
+      "FireplaceFeatures"
+    ],
+    "listed_dropped_columns": [
+      "ClosePrice",
+      "PurchaseContractDate",
+      "CloseDate",
+      "VirtualTourURLUnbranded",
+      "FireplaceFeatures"
+    ],
+    "sold_any_invalid": 118,
+    "listed_any_invalid": 49,
+    "sold_geo_null_pct": 4.15,
+    "sold_lon_positive": 22,
+    "listed_geo_null_pct": 4.25,
+    "listed_lon_positive": 33
+  },
+  "cleaning_phase2": {
+    "sold_outside_ca": 105,
+    "sold_any_flag_records": 486,
+    "sold_dtype_audit": {
+      "numeric_columns_checked": 26,
+      "datetime_columns_checked": 5
+    },
+    "listed_outside_ca": 151,
+    "listed_any_flag_records": 557,
+    "listed_dtype_audit": {
+      "numeric_columns_checked": 19,
+      "datetime_columns_checked": 4
+    }
+  },
+  "features": {
+    "ppsf_valid_pct": 99.21,
+    "price_ratio_valid_pct": 100.0,
+    "counties": 6,
+    "months_in_trend": 33
+  },
+  "outliers": {
+    "rows_before": 6549,
+    "rows_analysis_ready": 5730,
+    "rows_excluded": 819,
+    "median_close_before": 871000.0,
+    "median_close_after": 824000.0,
+    "iqr": {
+      "ClosePrice": {
+        "q1": 594750.0,
+        "q3": 1253000.0,
+        "lower": -392625.0,
+        "upper": 2240375.0,
+        "flagged": 308
+      },
+      "LivingArea": {
+        "q1": 1326.75,
+        "q3": 2440.25,
+        "lower": -343.5,
+        "upper": 4110.5,
+        "flagged": 210
+      },
+      "DaysOnMarket": {
+        "q1": 17.0,
+        "q3": 48.0,
+        "lower": -29.5,
+        "upper": 94.5,
+        "flagged": 191
+      },
+      "ppsf": {
+        "q1": 391.15,
+        "q3": 574.06,
+        "lower": 116.78,
+        "upper": 848.42,
+        "flagged": 199
+      },
+      "listing_to_contract_days": {
+        "q1": 17.0,
+        "q3": 48.0,
+        "lower": -29.5,
+        "upper": 94.5,
+        "flagged": 191
+      },
+      "contract_to_close_days": {
+        "q1": 31.0,
+        "q3": 44.0,
+        "lower": 11.5,
+        "upper": 63.5,
+        "flagged": 90
+      }
+    }
+  },
+  "_runtime": {
+    "stages_run": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "seconds": 3.2
+  }
+}

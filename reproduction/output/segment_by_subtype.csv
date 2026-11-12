@@ -1,0 +1,6 @@
+﻿PropertySubType,ClosePrice_count,ClosePrice_median,ClosePrice_mean,ppsf_median,ppsf_mean,price_ratio_median,price_ratio_mean,DaysOnMarket_median,DaysOnMarket_mean,listing_to_contract_days_median,contract_to_close_days_median
+Single Family Residence,1318,867500.0,1000534.9,473.02,491.19,0.99,0.99,29.0,34.99,29.0,37.0
+Residential Income,1305,848000.0,995123.37,481.39,500.11,0.99,0.99,29.0,35.12,29.0,37.0
+Townhouse,1275,877000.0,996909.8,476.46,492.74,0.99,0.99,29.0,35.06,29.0,37.0
+Condominium,1269,869000.0,988780.14,468.32,488.52,0.99,0.99,30.0,35.56,30.0,38.0
+Manufactured Home,1254,864500.0,958376.4,470.31,489.5,0.99,0.99,28.0,34.57,28.0,37.0
