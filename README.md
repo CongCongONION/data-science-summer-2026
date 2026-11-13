@@ -1,3 +1,35 @@
+# IDX Exchange — Summer 2026 Data Science Internship Project
+
+**Author: Anna**
+
+A six-stage analytics pipeline over CRMLS real-estate data (Sold +
+Listing feeds, Jan 2024 – Mar 2026) enriched with FRED mortgage rates —
+plus an independently built reproduction with the validation and control
+layer a production analytics deliverable requires.
+
+## My independent reproduction & extensions → [`reproduction/`](reproduction/)
+
+The team specification was re-implemented from scratch in
+`reproduction/` (author: Anna); every figure below was produced by
+executing that code, and an integrity test suite re-derives each one
+from the committed artifacts.
+
+| Result (latest run, sample data in CRMLS schema — see provenance note in `reproduction/README.md`) | Value |
+|---|---|
+| Ingested | 6,549 Sold + 8,501 Listed records, 54 monthly files |
+| Reconciliation bridge | 6,549 = 85 business-rule invalids + 734 IQR outliers + 89 final-gate exclusions + **5,641 analysis-ready** — closes exactly, asserted in code |
+| Data-quality scorecard | **15 PASS / 0 WARN / 0 FAIL** (completeness, validity, uniqueness, consistency, geographic, enrichment) |
+| Hedonic pricing model | Time-based out-of-sample R² 0.644, RMSE $248K, area elasticity 0.99 — benchmarked against a naive predictor and reported as the tie it is |
+| Integrity tests | 12 pytest checks over the committed outputs, all passing |
+
+Start with `reproduction/README.md` (case study: three control problems
+found and fixed), then `reproduction/output/ANALYSIS_MEMO.md` for the
+full run report.
+
+---
+
+## Original team project README (preserved)
+
 # IDX Exchange — Data Analyst Internship
 
 Python-based MLS analytics pipeline using CRMLS data. The project progresses from raw data extraction through cleaning, feature engineering, and Tableau dashboard development over 12 weeks.
