@@ -54,8 +54,8 @@
   },
   "outliers": {
     "rows_before": 6549,
-    "rows_analysis_ready": 5730,
-    "rows_excluded": 819,
+    "rows_analysis_ready": 5641,
+    "rows_excluded": 908,
     "median_close_before": 871000.0,
     "median_close_after": 824000.0,
     "iqr": {
@@ -101,6 +101,23 @@
         "upper": 63.5,
         "flagged": 90
       }
+    },
+    "gate": {
+      "rows_excluded": 89,
+      "by_flag": {
+        "geo_outside_ca_flag": 87,
+        "geo_invalid_flag": 19,
+        "ppsf_flag": 0,
+        "price_ratio_flag": 0,
+        "ltc_days_flag": 0,
+        "ctc_days_flag": 0,
+        "any_invalid_flag": 0
+      },
+      "by_primary_reason": {
+        "geo_outside_ca_flag": 87,
+        "geo_invalid_flag": 2
+      },
+      "policy": "hard-exclude surviving records carrying a validity flag; missing coordinates are flagged, not gated"
     }
   },
   "_runtime": {
@@ -112,6 +129,6 @@
       "5",
       "6"
     ],
-    "seconds": 2.3
+    "seconds": 3.3
   }
 }

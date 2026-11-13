@@ -70,6 +70,13 @@ def main() -> None:
     L += ["## 2. Data quality & reconciliation", ""]
     if quality:
         tally = quality["status_tally"]
+        gate = run["outliers"].get("gate", {})
+        if gate:
+            reasons = "; ".join(f"{k}: {v}" for k, v in
+                                gate["by_primary_reason"].items())
+            L += [f"- Final data-quality gate excluded "
+                  f"{gate['rows_excluded']} flagged survivors at the "
+                  f"delivery boundary (primary reasons — {reasons})."]
         L += [f"- Reconciliation bridge **closes exactly**: every ingested "
               "row is either analysis-ready or attributed to a named "
               "exclusion reason (see `row_count_bridge.csv`).",
@@ -145,9 +152,14 @@ def main() -> None:
               "run `market_analytics.py`.*", ""]
 
     L += ["## 5. Limitations", "",
-          "- The outlier stage removes ~12% of rows by design (1.5× IQR on "
-          "six fields plus business rules); medians after exclusion are "
-          "not comparable to raw-feed medians without that context.",
+          "- The exclusion layers remove ~14% of rows by design "
+          "(business rules, 1.5× IQR on six fields, and the final "
+          "data-quality gate); medians after exclusion are not "
+          "comparable to raw-feed medians without that context.",
+          "- The final DQ gate is a documented deviation from the "
+          "original spec, which flags suspect records for audit rather "
+          "than excluding them: cleaning still only flags, and the gate "
+          "acts once, at the delivery boundary.",
           "- The hedonic model is a linear benchmark: no spatial effects, "
           "no non-linear learner, and classical (non-robust) standard "
           "errors. It is a validation reference point, not a pricing "

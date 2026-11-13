@@ -13,7 +13,7 @@
 | 3 Cleaning I | Sparse columns dropped: Sold 3, Listed 5 · any-invalid: Sold 118, Listed 49 · geo null 4.15% / 4.25% |
 | 4 Cleaning II | Coordinates outside California: Sold 105, Listed 151 · records with ≥1 flag: 486 / 557 |
 | 5 Features | ppsf valid 99.21% · price_ratio valid 100.0% · 6 counties · monthly trend 33 months |
-| 6 Outliers | Excluded 819 of 6,549 → **analysis-ready 5,730 rows** · median ClosePrice $871,000 → $824,000 |
+| 6 Outliers | Excluded 908 of 6,549 → **analysis-ready 5,641 rows** · median ClosePrice $871,000 → $824,000 |
 
 ## Output files (all from this run)
 - `sold_analysis_ready.csv` — final analysis dataset

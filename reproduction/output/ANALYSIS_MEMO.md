@@ -7,35 +7,36 @@
 ## 1. What was processed
 
 - Sold (Residential): 6,549 rows · Listed: 8,501 rows, monthly files Jan 2024 – Mar 2026, CRMLS via CoreLogic Trestle schema.
-- Exclusions at the outlier stage: 819 of 6,549 → **5,730 analysis-ready rows**; median ClosePrice $871,000 → $824,000.
+- Exclusions at the outlier stage: 908 of 6,549 → **5,641 analysis-ready rows**; median ClosePrice $871,000 → $824,000.
 - Populations are labelled, never mixed: segment/trend tables describe the 6,421-row feature-valid population *before* outlier exclusion; the model and deep-dive analytics use the analysis-ready population.
 
 ## 2. Data quality & reconciliation
 
+- Final data-quality gate excluded 89 flagged survivors at the delivery boundary (primary reasons — geo_outside_ca_flag: 87; geo_invalid_flag: 2).
 - Reconciliation bridge **closes exactly**: every ingested row is either analysis-ready or attributed to a named exclusion reason (see `row_count_bridge.csv`).
-- Scorecard: 13 PASS / 1 WARN / 0 FAIL across named completeness, validity, uniqueness, consistency, geographic and enrichment checks (see `data_quality_scorecard.csv`).
-- The WARN is by design, and is surfaced rather than hidden: the Week 5 spec *flags* out-of-California coordinates for audit instead of excluding them, so 1.52% of analysis-ready rows carry that flag.
+- Scorecard: 15 PASS / 0 WARN / 0 FAIL across named completeness, validity, uniqueness, consistency, geographic and enrichment checks (see `data_quality_scorecard.csv`).
 
 ## 3. Hedonic pricing model (out-of-sample validated)
 
 - Spec: log(ClosePrice) ~ log(LivingArea) + beds + baths + log1p(lot acres) + age + DOM + 30yr rate + county FE + subtype FE (OLS).
-- Time-based split at 2025-07-01: 3,314 train / 2,416 test rows.
-- Out-of-sample (test): R² 0.644, RMSE $248,459, MAPE 23.5%. In-sample log R² 0.711.
-- Benchmark (train median $/sqft × area): test RMSE $248,362 — the hedonic model lands within +0.0% of it, i.e. statistically a tie on this dataset. That is the honest result, and it is reported rather than tuned away: the model's contribution here is driver evidence, not a claimed forecasting edge.
+- Time-based split at 2025-07-01: 3,271 train / 2,370 test rows.
+- Out-of-sample (test): R² 0.644, RMSE $248,330, MAPE 23.4%. In-sample log R² 0.711.
+- Benchmark (train median $/sqft × area): test RMSE $248,496 — the hedonic model lands within -0.1% of it, i.e. statistically a tie on this dataset. That is the honest result, and it is reported rather than tuned away: the model's contribution here is driver evidence, not a claimed forecasting edge.
 - Recovered living-area elasticity: 0.99 (a value near 1.0 is the theoretically expected scaling for price vs area).
-- Strongest drivers by |t|: log_area (+0.988, t=90); intercept (+6.107, t=38); subtype_Townhouse (+0.036, t=3); subtype_Residential Income (+0.030, t=2); county_San Bernardino (+0.028, t=2).
+- Strongest drivers by |t|: log_area (+0.989, t=89); intercept (+6.102, t=37); subtype_Townhouse (+0.035, t=2); subtype_Residential Income (+0.029, t=2); county_San Bernardino (+0.028, t=2).
 - Target-leakage control: sale-to-list ratios are excluded from predictors because they are built from ClosePrice.
 
 ## 4. Market analytics
 
-- Monthly price index over 30 months (base = 100, first solid quarter); latest reading 95.6.
-- Rate overlay (30 solid months): mortgage rate vs sales volume Pearson -0.10 / Spearman -0.19; vs median price -0.05; vs DOM -0.07. Associations only — no causal claim is made.
+- Monthly price index over 30 months (base = 100, first solid quarter); latest reading 95.3.
+- Rate overlay (30 solid months): mortgage rate vs sales volume Pearson -0.08 / Spearman -0.14; vs median price -0.06; vs DOM -0.06. Associations only — no causal claim is made.
 - Counties: volume leader Los Angeles, price leader San Bernardino (dispersion in `county_deep_dive.csv`).
 - Supply side: median 315 new listings per month in the Listed feed.
 
 ## 5. Limitations
 
-- The outlier stage removes ~12% of rows by design (1.5× IQR on six fields plus business rules); medians after exclusion are not comparable to raw-feed medians without that context.
+- The exclusion layers remove ~14% of rows by design (business rules, 1.5× IQR on six fields, and the final data-quality gate); medians after exclusion are not comparable to raw-feed medians without that context.
+- The final DQ gate is a documented deviation from the original spec, which flags suspect records for audit rather than excluding them: cleaning still only flags, and the gate acts once, at the delivery boundary.
 - The hedonic model is a linear benchmark: no spatial effects, no non-linear learner, and classical (non-robust) standard errors. It is a validation reference point, not a pricing product.
 - Monthly tail periods can be thin (late closings of the final listing months); index and overlay statistics exclude months with fewer than 10 sales.
 - Mortgage rates are monthly means of the weekly FRED series; timing within the month is not modelled.

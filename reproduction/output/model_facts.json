@@ -1,57 +1,57 @@
 {
   "spec": "log(ClosePrice) ~ log(LivingArea) + beds + baths + log1p(lot acres) + age + DOM + 30yr rate + county FE + subtype FE (OLS)",
   "split_date": "2025-07-01",
-  "n_train": 3314,
-  "n_test": 2416,
-  "train_r2_log": 0.711,
+  "n_train": 3271,
+  "n_test": 2370,
+  "train_r2_log": 0.7112,
   "train_metrics_price": {
-    "r2": 0.6729,
-    "rmse": 237861.86,
-    "mae": 181299.46,
-    "mape_pct": 22.35
+    "r2": 0.6728,
+    "rmse": 238196.63,
+    "mae": 181454.17,
+    "mape_pct": 22.37
   },
   "test_metrics_price": {
-    "r2": 0.6441,
-    "rmse": 248458.66,
-    "mae": 192470.36,
-    "mape_pct": 23.47
-  },
-  "benchmark_median_ppsf": 470.9698239826407,
-  "benchmark_test_metrics_price": {
     "r2": 0.6443,
-    "rmse": 248362.3,
-    "mae": 191512.87,
-    "mape_pct": 23.03
+    "rmse": 248330.06,
+    "mae": 192107.73,
+    "mape_pct": 23.43
   },
-  "test_rmse_vs_benchmark_pct": 0.0,
-  "log_area_elasticity": 0.9881,
-  "residual_log_std": 0.2594,
-  "residual_log_skew": -0.216,
+  "benchmark_median_ppsf": 469.8581560283688,
+  "benchmark_test_metrics_price": {
+    "r2": 0.6439,
+    "rmse": 248496.05,
+    "mae": 191292.52,
+    "mape_pct": 22.96
+  },
+  "test_rmse_vs_benchmark_pct": -0.1,
+  "log_area_elasticity": 0.9887,
+  "residual_log_std": 0.2597,
+  "residual_log_skew": -0.215,
   "top_drivers": [
     {
       "term": "log_area",
-      "coef": 0.9881,
-      "t_stat": 89.81
+      "coef": 0.9887,
+      "t_stat": 89.28
     },
     {
       "term": "intercept",
-      "coef": 6.1071,
-      "t_stat": 37.66
+      "coef": 6.1017,
+      "t_stat": 37.38
     },
     {
       "term": "subtype_Townhouse",
-      "coef": 0.0361,
-      "t_stat": 2.53
+      "coef": 0.0347,
+      "t_stat": 2.41
     },
     {
       "term": "subtype_Residential Income",
-      "coef": 0.0301,
-      "t_stat": 2.12
+      "coef": 0.0288,
+      "t_stat": 2.02
     },
     {
       "term": "county_San Bernardino",
       "coef": 0.0277,
-      "t_stat": 1.64
+      "t_stat": 1.65
     }
   ]
 }

@@ -32,8 +32,14 @@
       "note": "outside fences on price, area, DOM, $/sqft or timeline spans"
     },
     {
+      "stage": "excluded: final data-quality gate",
+      "rows": -89,
+      "delta_vs_previous": -89,
+      "note": "survivors still carrying a validity flag (geo outside CA or invalid, feature ranges, timeline spans)"
+    },
+    {
       "stage": "analysis-ready",
-      "rows": 5730,
+      "rows": 5641,
       "delta_vs_previous": 0,
       "note": "sold_analysis_ready.csv"
     }
@@ -44,28 +50,28 @@
       "value": 100.0,
       "threshold": ">= 99%",
       "status": "PASS",
-      "detail": "5,730 of 5,730 rows"
+      "detail": "5,641 of 5,641 rows"
     },
     {
       "check": "completeness: LivingArea present (Sold, ready)",
       "value": 100.0,
       "threshold": ">= 99%",
       "status": "PASS",
-      "detail": "5,730 of 5,730 rows"
+      "detail": "5,641 of 5,641 rows"
     },
     {
       "check": "completeness: CloseDate present (Sold, ready)",
       "value": 100.0,
       "threshold": ">= 99%",
       "status": "PASS",
-      "detail": "5,730 of 5,730 rows"
+      "detail": "5,641 of 5,641 rows"
     },
     {
       "check": "completeness: CountyOrParish present (Sold, ready)",
       "value": 100.0,
       "threshold": ">= 99%",
       "status": "PASS",
-      "detail": "5,730 of 5,730 rows"
+      "detail": "5,641 of 5,641 rows"
     },
     {
       "check": "validity: ClosePrice in (0, $50M]",
@@ -111,10 +117,17 @@
     },
     {
       "check": "geographic validity: coordinates inside California",
-      "value": 98.48,
+      "value": 100.0,
       "threshold": ">= 99%",
-      "status": "WARN",
+      "status": "PASS",
       "detail": "bounding-box audit, Week 5 spec"
+    },
+    {
+      "check": "final gate: analysis-ready rows carrying a validity flag",
+      "value": 0.0,
+      "threshold": "== 0",
+      "status": "PASS",
+      "detail": "the gate's own post-condition, checked on the shipped file rather than trusted"
     },
     {
       "check": "enrichment: FRED mortgage rate matched",
@@ -139,7 +152,6 @@
     }
   ],
   "status_tally": {
-    "PASS": 13,
-    "WARN": 1
+    "PASS": 15
   }
 }

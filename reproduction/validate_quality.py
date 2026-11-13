@@ -59,6 +59,8 @@ def build_bridge() -> pd.DataFrame:
     biz = int(flagged["any_biz_invalid"].sum())
     out_only = int(((flagged["any_outlier_flag"] == 1)
                     & (flagged["any_biz_invalid"] == 0)).sum())
+    gated = int(flagged["gate_flag"].sum()) if "gate_flag" in flagged \
+        else 0
     rows = [
         ("combined_sold (Residential, as ingested)", len(combined), 0, ""),
         ("after cleaning phases 1-2 (flags added, no rows dropped)",
@@ -71,18 +73,23 @@ def build_bridge() -> pd.DataFrame:
         ("excluded: statistical outliers (1.5x IQR, biz-valid rows only)",
          -out_only, -out_only,
          "outside fences on price, area, DOM, $/sqft or timeline spans"),
+        ("excluded: final data-quality gate", -gated, -gated,
+         "survivors still carrying a validity flag (geo outside CA or "
+         "invalid, feature ranges, timeline spans)"),
         ("analysis-ready", len(ready), 0, "sold_analysis_ready.csv"),
     ]
     bridge = pd.DataFrame(
         rows, columns=["stage", "rows", "delta_vs_previous", "note"])
-    accounted = len(features) - biz - out_only
+    accounted = len(features) - biz - out_only - gated
     assert accounted == len(ready), (
         f"BRIDGE DOES NOT CLOSE: features {len(features):,} - biz {biz:,} "
-        f"- outliers {out_only:,} = {accounted:,} != ready {len(ready):,}")
+        f"- outliers {out_only:,} - gate {gated:,} = {accounted:,} "
+        f"!= ready {len(ready):,}")
     assert len(combined) == len(final_clean) == len(features) \
         == len(flagged), "row count changed before the exclusion stage"
     print(f"  bridge closes: {len(features):,} = {biz:,} biz-invalid + "
-          f"{out_only:,} outliers + {len(ready):,} analysis-ready")
+          f"{out_only:,} outliers + {gated:,} gated + "
+          f"{len(ready):,} analysis-ready")
     return bridge
 
 
@@ -139,6 +146,17 @@ def build_scorecard() -> pd.DataFrame:
     checks.append(_check("geographic validity: coordinates inside California",
                          v, ">= 99%", "PASS" if v >= 99 else "WARN",
                          "bounding-box audit, Week 5 spec"))
+    gate_cols = [c for c in ("geo_outside_ca_flag", "geo_invalid_flag",
+                             "ppsf_flag", "price_ratio_flag",
+                             "ltc_days_flag", "ctc_days_flag",
+                             "any_invalid_flag") if c in ready.columns]
+    flagged_rows = int((ready[gate_cols].max(axis=1) > 0).sum()) \
+        if gate_cols else 0
+    checks.append(_check("final gate: analysis-ready rows carrying a "
+                         "validity flag", flagged_rows, "== 0",
+                         "PASS" if flagged_rows == 0 else "FAIL",
+                         "the gate's own post-condition, checked on the "
+                         "shipped file rather than trusted"))
     v = pct(ready["rate_30yr_fixed"].notna())
     checks.append(_check("enrichment: FRED mortgage rate matched", v,
                          "== 100%", "PASS" if v == 100 else "FAIL",

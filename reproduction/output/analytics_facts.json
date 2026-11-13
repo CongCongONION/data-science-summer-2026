@@ -1,20 +1,20 @@
 {
   "index_base": "median price, first 3 months with >= 10 sales = 100",
   "months": 30,
-  "latest_index": 95.6,
+  "latest_index": 95.3,
   "rate_overlay": {
     "months_used": 30,
     "rate_vs_sales": {
-      "pearson": -0.097,
-      "spearman": -0.186
+      "pearson": -0.084,
+      "spearman": -0.139
     },
     "rate_vs_median_price": {
-      "pearson": -0.053,
-      "spearman": -0.071
+      "pearson": -0.064,
+      "spearman": -0.076
     },
     "rate_vs_median_dom": {
-      "pearson": -0.066,
-      "spearman": 0.092
+      "pearson": -0.061,
+      "spearman": 0.097
     }
   },
   "supply": {

@@ -577,7 +577,42 @@ def stage_outliers() -> None:
     sold["any_outlier_flag"] = sold[flag_cols].max(axis=1).astype(int)
     sold["exclude_flag"] = (
         (sold["any_biz_invalid"] == 1) | (sold["any_outlier_flag"] == 1)).astype(int)
+
+    # ---- final data-quality gate (extension control layer) -------------
+    # The cleaning stages follow the original spec: they FLAG suspect
+    # records for audit and keep them in the flow. A production deliverable
+    # needs the opposite at the boundary: nothing ships with a known data
+    # defect. The gate therefore hard-excludes any surviving record that
+    # still carries a validity flag — coordinates outside California or
+    # invalid, $/sqft or sale-to-list outside their validity ranges,
+    # timeline spans outside theirs, or any phase-1 invalid flag. Missing
+    # coordinates (geo_null) are NOT gated: absence of information is not
+    # an error, and those rows stay, visibly flagged. Every gated row is
+    # attributed to one primary reason (first matching flag, in the order
+    # below) so the reconciliation bridge can account for it exactly.
+    GATE_FLAGS = ["geo_outside_ca_flag", "geo_invalid_flag", "ppsf_flag",
+                  "price_ratio_flag", "ltc_days_flag", "ctc_days_flag",
+                  "any_invalid_flag"]
+    present = [c for c in GATE_FLAGS if c in sold.columns]
+    cand = sold.loc[sold["exclude_flag"] == 0]
+    gate_hit = cand[present].max(axis=1).astype(int) if present \
+        else pd.Series(0, index=cand.index)
+    sold["gate_flag"] = 0
+    sold.loc[cand.index, "gate_flag"] = gate_hit
+    primary = {}
+    remaining = cand.loc[gate_hit == 1]
+    for col in present:
+        hit = remaining.loc[remaining[col] == 1]
+        if len(hit):
+            primary[col] = int(len(hit))
+            remaining = remaining.drop(index=hit.index)
+    gate_by_flag = {c: int(cand[c].sum()) for c in present}
+    sold["exclude_flag"] = (
+        (sold["exclude_flag"] == 1) | (sold["gate_flag"] == 1)).astype(int)
     ready = sold.loc[sold["exclude_flag"] == 0].copy()
+    n_gate = int(gate_hit.sum())
+    print(f"  final DQ gate: excluded {n_gate:,} flagged survivors "
+          f"(primary reasons: {primary})")
 
     med_before = float(sold["ClosePrice"].median())
     med_after = float(ready["ClosePrice"].median())
@@ -592,6 +627,11 @@ def stage_outliers() -> None:
         "rows_excluded": int(sold["exclude_flag"].sum()),
         "median_close_before": med_before, "median_close_after": med_after,
         "iqr": stats,
+        "gate": {"rows_excluded": n_gate, "by_flag": gate_by_flag,
+                 "by_primary_reason": primary,
+                 "policy": "hard-exclude surviving records carrying a "
+                           "validity flag; missing coordinates are "
+                           "flagged, not gated"},
     })
 
 

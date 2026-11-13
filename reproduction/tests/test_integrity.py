@@ -75,6 +75,37 @@ def test_ready_dataset_obeys_business_rules():
     assert READY["ListingId"].notna().all()
 
 
+GATE_COLS = ["geo_outside_ca_flag", "geo_invalid_flag", "ppsf_flag",
+             "price_ratio_flag", "ltc_days_flag", "ctc_days_flag",
+             "any_invalid_flag"]
+
+
+def test_final_gate_postcondition_on_shipped_file():
+    # the gate's promise, verified on the shipped artifact itself:
+    # no analysis-ready row may carry a validity flag
+    present = [c for c in GATE_COLS if c in READY.columns]
+    assert present, "gate flag columns missing from analysis-ready file"
+    assert int((READY[present].max(axis=1) > 0).sum()) == 0
+    assert (READY["geo_outside_ca_flag"] == 0).all()
+
+
+def test_gate_attribution_accounts_for_every_gated_row():
+    gate = RUN["outliers"]["gate"]
+    assert sum(gate["by_primary_reason"].values()) == gate["rows_excluded"]
+    assert gate["rows_excluded"] > 0
+    bridge = _csv("row_count_bridge.csv")
+    gate_row = bridge.loc[bridge["stage"].str.contains("data-quality gate"),
+                          "rows"]
+    assert len(gate_row) == 1
+    assert -int(gate_row.iloc[0]) == gate["rows_excluded"]
+
+
+def test_full_partition_across_all_exclusion_layers():
+    o = RUN["outliers"]
+    assert o["rows_before"] - o["rows_excluded"] == o["rows_analysis_ready"]
+    assert len(READY) == o["rows_analysis_ready"]
+
+
 def test_median_shift_matches_facts():
     o = RUN["outliers"]
     assert float(READY["ClosePrice"].median()) == \

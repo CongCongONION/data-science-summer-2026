@@ -4,4 +4,5 @@ stage,rows,delta_vs_previous,note
 after feature engineering,6549,0,features add columns only
 excluded: business-rule invalids,-85,-85,"ClosePrice/LivingArea missing or <= 0, or DaysOnMarket < 0"
 "excluded: statistical outliers (1.5x IQR, biz-valid rows only)",-734,-734,"outside fences on price, area, DOM, $/sqft or timeline spans"
-analysis-ready,5730,0,sold_analysis_ready.csv
+excluded: final data-quality gate,-89,-89,"survivors still carrying a validity flag (geo outside CA or invalid, feature ranges, timeline spans)"
+analysis-ready,5641,0,sold_analysis_ready.csv
