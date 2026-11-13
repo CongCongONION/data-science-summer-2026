@@ -1,0 +1,145 @@
+{
+  "bridge_closes": true,
+  "bridge_rows": [
+    {
+      "stage": "combined_sold (Residential, as ingested)",
+      "rows": 6549,
+      "delta_vs_previous": 0,
+      "note": ""
+    },
+    {
+      "stage": "after cleaning phases 1-2 (flags added, no rows dropped)",
+      "rows": 6549,
+      "delta_vs_previous": 0,
+      "note": "cleaning flags records, it does not remove them"
+    },
+    {
+      "stage": "after feature engineering",
+      "rows": 6549,
+      "delta_vs_previous": 0,
+      "note": "features add columns only"
+    },
+    {
+      "stage": "excluded: business-rule invalids",
+      "rows": -85,
+      "delta_vs_previous": -85,
+      "note": "ClosePrice/LivingArea missing or <= 0, or DaysOnMarket < 0"
+    },
+    {
+      "stage": "excluded: statistical outliers (1.5x IQR, biz-valid rows only)",
+      "rows": -734,
+      "delta_vs_previous": -734,
+      "note": "outside fences on price, area, DOM, $/sqft or timeline spans"
+    },
+    {
+      "stage": "analysis-ready",
+      "rows": 5730,
+      "delta_vs_previous": 0,
+      "note": "sold_analysis_ready.csv"
+    }
+  ],
+  "scorecard": [
+    {
+      "check": "completeness: ClosePrice present (Sold, ready)",
+      "value": 100.0,
+      "threshold": ">= 99%",
+      "status": "PASS",
+      "detail": "5,730 of 5,730 rows"
+    },
+    {
+      "check": "completeness: LivingArea present (Sold, ready)",
+      "value": 100.0,
+      "threshold": ">= 99%",
+      "status": "PASS",
+      "detail": "5,730 of 5,730 rows"
+    },
+    {
+      "check": "completeness: CloseDate present (Sold, ready)",
+      "value": 100.0,
+      "threshold": ">= 99%",
+      "status": "PASS",
+      "detail": "5,730 of 5,730 rows"
+    },
+    {
+      "check": "completeness: CountyOrParish present (Sold, ready)",
+      "value": 100.0,
+      "threshold": ">= 99%",
+      "status": "PASS",
+      "detail": "5,730 of 5,730 rows"
+    },
+    {
+      "check": "validity: ClosePrice in (0, $50M]",
+      "value": 100.0,
+      "threshold": "== 100%",
+      "status": "PASS",
+      "detail": "business-rule ceiling from the pipeline spec"
+    },
+    {
+      "check": "validity: $/sqft within [10, 5000]",
+      "value": 100.0,
+      "threshold": ">= 99%",
+      "status": "PASS",
+      "detail": "feature-validity range, Week 6 spec"
+    },
+    {
+      "check": "validity: sale-to-list ratio within [0.3, 2.0]",
+      "value": 100.0,
+      "threshold": ">= 99%",
+      "status": "PASS",
+      "detail": "feature-validity range, Week 6 spec"
+    },
+    {
+      "check": "uniqueness: duplicate ListingId (Sold, ready)",
+      "value": 0.0,
+      "threshold": "== 0",
+      "status": "PASS",
+      "detail": "repeat sales share an id only across different CloseDates; exact-key duplicates are the concern"
+    },
+    {
+      "check": "uniqueness: duplicate (ListingId, CloseDate)",
+      "value": 0.0,
+      "threshold": "== 0",
+      "status": "PASS",
+      "detail": "same listing closing twice on one date = double count"
+    },
+    {
+      "check": "consistency: CloseDate >= PurchaseContractDate",
+      "value": 100.0,
+      "threshold": "== 100%",
+      "status": "PASS",
+      "detail": "timeline ordering on analysis-ready rows"
+    },
+    {
+      "check": "geographic validity: coordinates inside California",
+      "value": 98.48,
+      "threshold": ">= 99%",
+      "status": "WARN",
+      "detail": "bounding-box audit, Week 5 spec"
+    },
+    {
+      "check": "enrichment: FRED mortgage rate matched",
+      "value": 100.0,
+      "threshold": "== 100%",
+      "status": "PASS",
+      "detail": "every close month must carry a 30-yr fixed rate"
+    },
+    {
+      "check": "completeness: ListingId present (Listed, combined)",
+      "value": 100.0,
+      "threshold": ">= 99%",
+      "status": "PASS",
+      "detail": "8,501 listed rows at ingest"
+    },
+    {
+      "check": "completeness: ClosePrice present at ingest (Sold)",
+      "value": 100.0,
+      "threshold": ">= 95%",
+      "status": "PASS",
+      "detail": "raw-feed completeness before any cleaning"
+    }
+  ],
+  "status_tally": {
+    "PASS": 13,
+    "WARN": 1
+  }
+}

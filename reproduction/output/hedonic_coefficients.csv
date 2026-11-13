@@ -1,0 +1,18 @@
+term,coef,std_err,t_stat
+intercept,6.1071,0.1621,37.66
+log_area,0.9881,0.011,89.81
+BedroomsTotal,-0.0012,0.0027,-0.44
+BathroomsTotalInteger,-0.0013,0.0032,-0.41
+log_lot,0.0027,0.0321,0.09
+age,0.0001,0.0001,0.65
+DaysOnMarket,0.0001,0.0002,0.53
+rate_30yr_fixed,0.0149,0.0204,0.73
+county_Orange,-0.004,0.0124,-0.32
+county_Riverside,0.0031,0.0154,0.2
+county_San Bernardino,0.0277,0.0168,1.64
+county_San Diego,0.0129,0.0131,0.99
+county_Ventura,-0.001,0.0222,-0.04
+subtype_Manufactured Home,0.0094,0.0144,0.65
+subtype_Residential Income,0.0301,0.0142,2.12
+subtype_Single Family Residence,0.0052,0.0141,0.37
+subtype_Townhouse,0.0361,0.0143,2.53

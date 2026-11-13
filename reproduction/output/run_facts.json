@@ -48,7 +48,9 @@
     "ppsf_valid_pct": 99.21,
     "price_ratio_valid_pct": 100.0,
     "counties": 6,
-    "months_in_trend": 33
+    "months_in_trend": 33,
+    "segment_population_rows": 6421,
+    "segment_population": "feature-valid rows before outlier exclusion"
   },
   "outliers": {
     "rows_before": 6549,
@@ -110,6 +112,6 @@
       "5",
       "6"
     ],
-    "seconds": 3.2
+    "seconds": 2.3
   }
 }

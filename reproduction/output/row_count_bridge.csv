@@ -1,0 +1,7 @@
+stage,rows,delta_vs_previous,note
+"combined_sold (Residential, as ingested)",6549,0,
+"after cleaning phases 1-2 (flags added, no rows dropped)",6549,0,"cleaning flags records, it does not remove them"
+after feature engineering,6549,0,features add columns only
+excluded: business-rule invalids,-85,-85,"ClosePrice/LivingArea missing or <= 0, or DaysOnMarket < 0"
+"excluded: statistical outliers (1.5x IQR, biz-valid rows only)",-734,-734,"outside fences on price, area, DOM, $/sqft or timeline spans"
+analysis-ready,5730,0,sold_analysis_ready.csv

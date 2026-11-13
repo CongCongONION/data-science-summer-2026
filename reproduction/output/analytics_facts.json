@@ -1,0 +1,28 @@
+{
+  "index_base": "median price, first 3 months with >= 10 sales = 100",
+  "months": 30,
+  "latest_index": 95.6,
+  "rate_overlay": {
+    "months_used": 30,
+    "rate_vs_sales": {
+      "pearson": -0.097,
+      "spearman": -0.186
+    },
+    "rate_vs_median_price": {
+      "pearson": -0.053,
+      "spearman": -0.071
+    },
+    "rate_vs_median_dom": {
+      "pearson": -0.066,
+      "spearman": 0.092
+    }
+  },
+  "supply": {
+    "listed_rows": 8501,
+    "peak_listing_month": "2025-01",
+    "peak_new_listings": 325,
+    "median_monthly_new_listings": 315
+  },
+  "county_leader_by_volume": "Los Angeles",
+  "county_price_leader": "San Bernardino"
+}

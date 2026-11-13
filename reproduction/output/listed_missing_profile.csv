@@ -1,4 +1,4 @@
-﻿column,null_count,null_pct
+column,null_count,null_pct
 ClosePrice,8501,100.0
 VirtualTourURLUnbranded,8501,100.0
 CloseDate,8501,100.0
@@ -9,7 +9,7 @@ City,0,0.0
 PropertySubType,0,0.0
 PropertyType,0,0.0
 CountyOrParish,0,0.0
-ï»¿ListingId,0,0.0
+ListingId,0,0.0
 ListPrice,0,0.0
 Longitude,0,0.0
 StateOrProvince,0,0.0

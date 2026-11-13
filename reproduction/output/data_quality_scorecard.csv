@@ -1,0 +1,15 @@
+check,value,threshold,status,detail
+"completeness: ClosePrice present (Sold, ready)",100.0,>= 99%,PASS,"5,730 of 5,730 rows"
+"completeness: LivingArea present (Sold, ready)",100.0,>= 99%,PASS,"5,730 of 5,730 rows"
+"completeness: CloseDate present (Sold, ready)",100.0,>= 99%,PASS,"5,730 of 5,730 rows"
+"completeness: CountyOrParish present (Sold, ready)",100.0,>= 99%,PASS,"5,730 of 5,730 rows"
+"validity: ClosePrice in (0, $50M]",100.0,== 100%,PASS,business-rule ceiling from the pipeline spec
+"validity: $/sqft within [10, 5000]",100.0,>= 99%,PASS,"feature-validity range, Week 6 spec"
+"validity: sale-to-list ratio within [0.3, 2.0]",100.0,>= 99%,PASS,"feature-validity range, Week 6 spec"
+"uniqueness: duplicate ListingId (Sold, ready)",0.0,== 0,PASS,repeat sales share an id only across different CloseDates; exact-key duplicates are the concern
+"uniqueness: duplicate (ListingId, CloseDate)",0.0,== 0,PASS,same listing closing twice on one date = double count
+consistency: CloseDate >= PurchaseContractDate,100.0,== 100%,PASS,timeline ordering on analysis-ready rows
+geographic validity: coordinates inside California,98.48,>= 99%,WARN,"bounding-box audit, Week 5 spec"
+enrichment: FRED mortgage rate matched,100.0,== 100%,PASS,every close month must carry a 30-yr fixed rate
+"completeness: ListingId present (Listed, combined)",100.0,>= 99%,PASS,"8,501 listed rows at ingest"
+completeness: ClosePrice present at ingest (Sold),100.0,>= 95%,PASS,raw-feed completeness before any cleaning

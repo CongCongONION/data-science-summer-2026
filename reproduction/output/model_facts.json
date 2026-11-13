@@ -1,0 +1,57 @@
+{
+  "spec": "log(ClosePrice) ~ log(LivingArea) + beds + baths + log1p(lot acres) + age + DOM + 30yr rate + county FE + subtype FE (OLS)",
+  "split_date": "2025-07-01",
+  "n_train": 3314,
+  "n_test": 2416,
+  "train_r2_log": 0.711,
+  "train_metrics_price": {
+    "r2": 0.6729,
+    "rmse": 237861.86,
+    "mae": 181299.46,
+    "mape_pct": 22.35
+  },
+  "test_metrics_price": {
+    "r2": 0.6441,
+    "rmse": 248458.66,
+    "mae": 192470.36,
+    "mape_pct": 23.47
+  },
+  "benchmark_median_ppsf": 470.9698239826407,
+  "benchmark_test_metrics_price": {
+    "r2": 0.6443,
+    "rmse": 248362.3,
+    "mae": 191512.87,
+    "mape_pct": 23.03
+  },
+  "test_rmse_vs_benchmark_pct": 0.0,
+  "log_area_elasticity": 0.9881,
+  "residual_log_std": 0.2594,
+  "residual_log_skew": -0.216,
+  "top_drivers": [
+    {
+      "term": "log_area",
+      "coef": 0.9881,
+      "t_stat": 89.81
+    },
+    {
+      "term": "intercept",
+      "coef": 6.1071,
+      "t_stat": 37.66
+    },
+    {
+      "term": "subtype_Townhouse",
+      "coef": 0.0361,
+      "t_stat": 2.53
+    },
+    {
+      "term": "subtype_Residential Income",
+      "coef": 0.0301,
+      "t_stat": 2.12
+    },
+    {
+      "term": "county_San Bernardino",
+      "coef": 0.0277,
+      "t_stat": 1.64
+    }
+  ]
+}

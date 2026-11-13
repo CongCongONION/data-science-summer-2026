@@ -80,11 +80,16 @@ def _ensure_dirs() -> None:
 
 
 def _read(path: str) -> pd.DataFrame:
-    return pd.read_csv(path, low_memory=False, encoding="latin-1")
+    # utf-8-sig strips any BOM so column names stay clean across stages;
+    # latin-1 is the fallback for vendor exports with legacy characters
+    try:
+        return pd.read_csv(path, low_memory=False, encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        return pd.read_csv(path, low_memory=False, encoding="latin-1")
 
 
 def _save(df: pd.DataFrame, path: str) -> str:
-    df.to_csv(path, index=False, encoding="utf-8-sig")
+    df.to_csv(path, index=False, encoding="utf-8")
     print(f"    wrote {os.path.relpath(path, ROOT)}  ({len(df):,} x {df.shape[1]})")
     return path
 
@@ -513,6 +518,11 @@ def stage_features() -> None:
         "price_ratio_valid_pct": round(float(sold["price_ratio"].notna().mean() * 100), 2),
         "counties": int(usable["CountyOrParish"].nunique()),
         "months_in_trend": int(monthly.shape[0]),
+        # segment/trend tables describe the feature-valid population BEFORE
+        # outlier exclusion; analysis-ready is a different, smaller
+        # population. The two must never be mixed without this label.
+        "segment_population_rows": int(len(usable)),
+        "segment_population": "feature-valid rows before outlier exclusion",
     })
 
 
