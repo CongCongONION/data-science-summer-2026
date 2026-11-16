@@ -26,6 +26,19 @@ Start with `reproduction/README.md` (case study: three control problems
 found and fixed), then `reproduction/output/ANALYSIS_MEMO.md` for the
 full run report.
 
+### NLP extension (post-internship, November 2026) → [`nlp_extension/`](nlp_extension/)
+
+A separate, later extension - **not** part of the internship or the
+reproduction above. It adds the unstructured-text components the original
+project did not have: rule-based entity extraction, a TF-IDF + logistic
+condition classifier, MiniLM + FAISS semantic retrieval, and a hedonic
+ablation, all over generated remark text with known-by-construction
+labels, plus a formal validation report. Its most instructive results
+are the honest ones: classification macro-F1 falls from 1.00 (random
+split) to 0.47 under a template-family holdout, the TF-IDF baseline
+beats the embedding challenger on ranking quality, and text features
+add no pricing signal in the ablation. See `nlp_extension/README.md`.
+
 ---
 
 ## Original team project README (preserved)
