@@ -56,8 +56,8 @@ distinction is stated wherever the numbers appear, and a test fails if
 the segment tables ever drift from their labelled population.
 
 ## Modelling, reported honestly
-Hedonic OLS on the gated dataset (train 3,314 closes before 2025-07-01,
-test 2,416 after): out-of-sample R² **0.644**, RMSE **$248K**, MAPE
+Hedonic OLS on the gated dataset (train 3,271 closes before 2025-07-01,
+test 2,370 after): out-of-sample R² **0.644**, RMSE **$248K**, MAPE
 **23.4%**; recovered living-area elasticity **0.99** (t ≈ 90). Against a
 naive median-$/sqft benchmark scored on the same test rows, the model is
 **statistically tied** on RMSE — reported as a tie, not tuned into a
