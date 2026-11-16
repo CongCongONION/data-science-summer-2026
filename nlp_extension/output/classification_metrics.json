@@ -1,0 +1,26 @@
+{
+  "n_train": 4512,
+  "n_test": 1129,
+  "accuracy": 1.0,
+  "macro_f1": 1.0,
+  "per_class": {
+    "turnkey_updated": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 497
+    },
+    "original_condition": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 473
+    },
+    "fixer_upper": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 159
+    }
+  }
+}

@@ -1,0 +1,6 @@
+subtype,n,condition_acc,sqft_match,tenant_f1_recall
+Condominium,1136,0.9621,1.0,1.0
+Manufactured Home,1105,0.971,1.0,1.0
+Residential Income,1135,0.97,1.0,1.0
+Single Family Residence,1151,0.9635,1.0,1.0
+Townhouse,1114,0.9659,1.0,1.0

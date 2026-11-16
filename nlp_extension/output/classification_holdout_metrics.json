@@ -1,0 +1,7 @@
+{
+  "protocol": "train on condition-sentence templates 0-1 per class, test on held-out templates 2-3",
+  "n_train": 2845,
+  "n_test": 2796,
+  "accuracy": 0.6602,
+  "macro_f1": 0.4657
+}

@@ -1,0 +1,18 @@
+{
+  "n_docs": 5641,
+  "n_queries": 16,
+  "systems": {
+    "tfidf": {
+      "recall@5": 0.0179,
+      "recall@10": 0.0324,
+      "mrr@10": 0.9583,
+      "ndcg@10": 0.9219
+    },
+    "minilm_faiss": {
+      "recall@5": 0.0145,
+      "recall@10": 0.0249,
+      "mrr@10": 0.8906,
+      "ndcg@10": 0.7361
+    }
+  }
+}

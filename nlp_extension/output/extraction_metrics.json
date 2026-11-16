@@ -1,0 +1,41 @@
+{
+  "n": 5641,
+  "beds_exact_match": 1.0,
+  "baths_exact_match": 1.0,
+  "sqft_exact_match": 1.0,
+  "year_built_exact_match": 1.0,
+  "hoa_amount_exact_match": 1.0,
+  "tenant_occupied": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "support": 667
+  },
+  "flood_mention": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "support": 383
+  },
+  "price_reduced_mention": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "support": 939
+  },
+  "pool_mention": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "support": 1224
+  },
+  "adu_mention": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "support": 337
+  },
+  "solar_accuracy": 1.0,
+  "solar_leased_recall": 1.0,
+  "condition_accuracy": 0.9665
+}

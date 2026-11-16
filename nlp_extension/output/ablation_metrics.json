@@ -1,0 +1,20 @@
+{
+  "baseline": {
+    "n_train": 3271,
+    "n_test": 2370,
+    "r2_price": 0.6386,
+    "rmse_price": 250316.0
+  },
+  "plus_gold_text": {
+    "n_train": 3271,
+    "n_test": 2370,
+    "r2_price": 0.6386,
+    "rmse_price": 250329.0
+  },
+  "plus_extracted_text": {
+    "n_train": 3271,
+    "n_test": 2370,
+    "r2_price": 0.6388,
+    "rmse_price": 250245.0
+  }
+}
